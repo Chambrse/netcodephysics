@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/menus.uss?fileID=7433441132597879392&amp;guid=8035de106a27c6c4789d9a548f52d698&amp;type=3#menus" />
+    <ui:Label tabindex="-1" text="Debug Menu" parse-escape-sequences="true" display-tooltip-when-elided="true" name="MenuLabelText" style="white-space: nowrap; -unity-text-align: upper-center;" />
+    <ui:GroupBox>
+        <ui:Toggle label="DebugMode" name="DebugMode" />
+        <ui:Toggle label="ShowTargetRotation" name="ShowTargetRotation" binding-path="ShowTargetRotation" focusable="true" style="flex-direction: row; align-items: center; justify-content: center; align-self: center;" />
+    </ui:GroupBox>
+</ui:UXML>

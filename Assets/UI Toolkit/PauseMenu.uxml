@@ -1,0 +1,8 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/menus.uss?fileID=7433441132597879392&amp;guid=8035de106a27c6c4789d9a548f52d698&amp;type=3#menus" />
+    <ui:Label tabindex="-1" text="Pause Menu" parse-escape-sequences="true" display-tooltip-when-elided="true" name="MenuLabelText" style="-unity-text-align: upper-center; margin-bottom: 44px; -unity-font: url(&quot;project://database/Assets/UI%20Toolkit/UnityThemes/UnityDefaultRuntimeTheme.tss?fileID=2230732570650464555&amp;guid=e5ad0e9a93a12434b804352df5521a92&amp;type=3#NotInter-Regular&quot;); -unity-font-style: bold; font-size: 32px; color: rgb(67, 56, 56); transition-duration: 3s;" />
+    <ui:GroupBox>
+        <ui:Button text="Debug Options" parse-escape-sequences="true" display-tooltip-when-elided="true" name="DebugOptions" tooltip="d" view-data-key="a" tabindex="-1" class="menuButton" />
+        <ui:Button text="Quit" parse-escape-sequences="true" display-tooltip-when-elided="true" name="Quit" tabindex="-1" usage-hints="None" tooltip="q" view-data-key="b" class="menuButton" style="display: flex; visibility: visible;" />
+    </ui:GroupBox>
+</ui:UXML>
