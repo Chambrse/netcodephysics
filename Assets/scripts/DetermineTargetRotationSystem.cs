@@ -17,6 +17,8 @@ public struct PhysicsProperties : IComponentData
 public struct TargetRotation : IComponentData
 {
     public quaternion Value;
+
+    public float3 targetRotationError;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -24,13 +26,6 @@ public struct TargetRotation : IComponentData
 [BurstCompile]
 public partial struct DetermineTargetRotationSystem : ISystem
 {
-
-    // [BurstCompile]
-    // public void OnCreate(ref SystemState state)
-    // {
-    //     // don't know what to put here yet 
-    //     state.RequireForUpdate<PhysicsProperties>();
-    // }
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
@@ -50,10 +45,10 @@ public partial struct DetermineTargetRotationJob : IJobEntity
 
     [BurstCompile]
     private void Execute(
-        in CraftInput craftInput, 
-        in MovementMode movementMode, 
-        in LocalTransform localTransform, 
-        in CraftTuning tuning, 
+        in CraftInput craftInput,
+        in MovementMode movementMode,
+        in LocalTransform localTransform,
+        in CraftTuning tuning,
         in PhysicsVelocity physicsVelocity,
         ref TargetRotation targetRotationComponent)
     {
@@ -69,37 +64,39 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         // Calculate the target rotation aligned with the world's up vector
         Quaternion targetRotation = Quaternion.LookRotation(yawedForward, Vector3.up);
 
-        Vector3 localVelocity = localTransform.InverseTransformDirection(physicsVelocity.Linear);
-
-
         float tiltAngleX;
         float tiltAngleY;
 
         float maxTiltAngle = 85;
 
-        // if (playerControls.Hover.Stop.ReadValue<float>() > 0)
-        // {
-        //     float xCorrectionTilt = XACCPIDController.Update(0, localVelocity.x, Time.fixedDeltaTime);
-        //     float zCorrectionTilt = ZACCPIDController.Update(0, localVelocity.z, Time.fixedDeltaTime);
-
-        //     tiltAngleX = Mathf.Clamp(xCorrectionTilt, -maxTiltAngle, maxTiltAngle);
-        //     tiltAngleY = Mathf.Clamp(zCorrectionTilt, -maxTiltAngle, maxTiltAngle);
-        // }
-        // else
-        // {
-            tiltAngleX = craftInput.Move.x * maxTiltAngle;
-            tiltAngleY = craftInput.Move.y * maxTiltAngle;
-
-        // }
-        //Debug.Log("tiltAngleX: " + tiltAngleX);
-        //Debug.Log("tiltAngleY: " + tiltAngleY);
-
+        tiltAngleX = craftInput.Move.x * maxTiltAngle;
+        tiltAngleY = craftInput.Move.y * maxTiltAngle;
 
         // Create quaternion rotation from Euler angles
         Vector3 eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
         Quaternion tiltRotation = Quaternion.Euler(eulerTilt);
 
-        targetRotationComponent.Value = targetRotation * tiltRotation;
+        Quaternion finalTargetRotationQuaternion = targetRotation * tiltRotation;
+        // Vector3 finalTargetRotationEuler = finalTargetRotationQuaternion.eulerAngles;
+        targetRotationComponent.Value = finalTargetRotationQuaternion;
+
+        // 1. Transform local axes (Vector3.right and Vector3.up) using the targetRotation quaternion
+        float3 targetRight = math.mul(targetRotationComponent.Value, new float3(1, 0, 0)); // Equivalent to target.TransformDirection(Vector3.right)
+        float3 targetUp = math.mul(targetRotationComponent.Value, new float3(0, 1, 0));    // Equivalent to target.TransformDirection(Vector3.up)
+
+        // 2. Transform current local axes (Vector3.right and Vector3.up) using the current rotation quaternion
+        float3 currentRight = math.mul(localTransform.Rotation, new float3(1, 0, 0));      // Equivalent to current.TransformDirection(Vector3.right)
+        float3 currentUp = math.mul(localTransform.Rotation, new float3(0, 1, 0));         // Equivalent to current.TransformDirection(Vector3.up)
+
+        // 3. Compute the cross products between the corresponding axes
+        float3 crossProductY = math.cross(currentUp, targetUp);
+        float3 crossProductX = math.cross(currentRight, targetRight);
+
+        // 4. Sum the cross products
+        float3 crossProductSum = crossProductX + crossProductY;
+
+        targetRotationComponent.targetRotationError = crossProductSum;
+
     }
 }
 

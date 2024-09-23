@@ -4,6 +4,9 @@ using Unity.NetCode;
 using Unity.Transforms;
 using Unity.Burst;
 using UnityEngine;
+using Unity.Physics;
+using UnityEditor.Search;
+using Unity.Collections;
 
 public struct CraftPhysicsProperties : IComponentData
 {
@@ -29,11 +32,21 @@ public partial struct UpdateCraftPhysicsPropertiesSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+
+        //physicsvelocitylookup
+        var physicsVelocityLookup = state.GetComponentLookup<PhysicsVelocity>(isReadOnly: true);
+
         var deltaTime = SystemAPI.Time.DeltaTime;
         new UpdateCraftPhysicsPropertiesJob
         {
             DeltaTime = deltaTime
         }.Schedule();
+
+        new setCurrentStateOnControllers
+        {
+            physicsVelocityLookup = physicsVelocityLookup
+        }.Schedule();
+
     }
 }
 
@@ -49,6 +62,21 @@ public partial struct UpdateCraftPhysicsPropertiesJob : IJobEntity
             physicsProperties.inertiaTensor = new float3(1, 1, 1);
             physicsProperties.centerOfPressure = new Vector3(0, 0, 0);
             physicsProperties.totalMass = 1;
+    }
+}
+
+[BurstCompile]
+public partial struct setCurrentStateOnControllers : IJobEntity
+{
+
+    // entitymanager
+    // public EntityManager entityManager;
+    [ReadOnly] public ComponentLookup<PhysicsVelocity> physicsVelocityLookup;
+
+    [BurstCompile]
+    private void Execute(ref PIDInputs_Vector pidInputs, in Parent parent)
+    {
+        pidInputs.AngularVelocity = physicsVelocityLookup[parent.Value].Angular;
     }
 }
 
