@@ -24,7 +24,7 @@ public struct TargetRotation : IComponentData
 [UpdateInGroup(typeof(InitializationSystemGroup))]
 [UpdateAfter(typeof(UpdateCraftPhysicsPropertiesSystem))]
 [BurstCompile]
-public partial struct DetermineTargetRotationSystem : ISystem
+public partial struct DetermineRotationErrors : ISystem
 {
 
     [BurstCompile]
@@ -55,7 +55,7 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         float yawInput = craftInput.YawVector;
         Vector3 currentForward = localTransform.Forward();
 
-        // project current forward onto the xz plane
+        // Project current forward onto the xz plane
         Vector3 currentForwardXZ = new Vector3(currentForward.x, 0, currentForward.z);
 
         Vector3 yawedForward = Quaternion.AngleAxis(yawInput * tuning.yawSpeed, Vector3.up) * currentForwardXZ;
@@ -76,27 +76,54 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         Vector3 eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
         Quaternion tiltRotation = Quaternion.Euler(eulerTilt);
 
+        // Combine target yaw rotation and tilt
         Quaternion finalTargetRotationQuaternion = targetRotation * tiltRotation;
-        // Vector3 finalTargetRotationEuler = finalTargetRotationQuaternion.eulerAngles;
         targetRotationComponent.Value = finalTargetRotationQuaternion;
 
-        // 1. Transform local axes (Vector3.right and Vector3.up) using the targetRotation quaternion
-        float3 targetRight = math.mul(targetRotationComponent.Value, new float3(1, 0, 0)); // Equivalent to target.TransformDirection(Vector3.right)
-        float3 targetUp = math.mul(targetRotationComponent.Value, new float3(0, 1, 0));    // Equivalent to target.TransformDirection(Vector3.up)
+        // Calculate the delta rotation (difference between current and target)
+        quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
 
-        // 2. Transform current local axes (Vector3.right and Vector3.up) using the current rotation quaternion
-        float3 currentRight = math.mul(localTransform.Rotation, new float3(1, 0, 0));      // Equivalent to current.TransformDirection(Vector3.right)
-        float3 currentUp = math.mul(localTransform.Rotation, new float3(0, 1, 0));         // Equivalent to current.TransformDirection(Vector3.up)
+        // Extract the axis-angle representation of the delta rotation
+        float angle;
+        float3 axis;
+        ToAxisAngleSafe(deltaRotation, out axis, out angle);
 
-        // 3. Compute the cross products between the corresponding axes
-        float3 crossProductY = math.cross(currentUp, targetUp);
-        float3 crossProductX = math.cross(currentRight, targetRight);
+        // Calculate the rotation error based on the angle and axis
+        targetRotationComponent.targetRotationError = axis * angle;
 
-        // 4. Sum the cross products
-        float3 crossProductSum = crossProductX + crossProductY;
+    }
 
-        targetRotationComponent.targetRotationError = crossProductSum;
+    // Helper function to convert quaternion to axis-angle representation safely
+    private void ToAxisAngleSafe(quaternion q, out float3 axis, out float angle)
+    {
+        // Normalize the quaternion to avoid errors
+        q = math.normalize(q);
 
+        // Calculate the angle (clamp to avoid invalid values for acos)
+        angle = 2.0f * math.acos(math.clamp(q.value.w, -1f, 1f));
+
+        // Clamp angle to the range [-pi, pi] to avoid flipping issues
+        if (angle > math.PI)
+        {
+            angle -= 2.0f * math.PI;
+        }
+
+        // Calculate the axis
+        float sinHalfAngle = math.sqrt(1.0f - q.value.w * q.value.w);
+
+        // Avoid division by zero by checking for small angles
+        if (sinHalfAngle < 0.001f)
+        {
+            // If the angle is very small, we approximate the axis
+            axis = new float3(1, 0, 0);
+        }
+        else
+        {
+            axis = q.value.xyz / sinHalfAngle;
+        }
+
+        // Make sure axis is normalized
+        axis = math.normalize(axis);
     }
 }
 

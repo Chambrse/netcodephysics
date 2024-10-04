@@ -9,6 +9,10 @@ public struct CraftInput : IInputComponentData
 
     public float YawVector;
 
+    public float Thrust;
+
+    public float Brakes;
+
 }
 
 //client only
@@ -47,7 +51,9 @@ public partial class GetPlayerInputSystem : SystemBase
             craftInput.ValueRW = new CraftInput
             {
                 Move = curMoveInput,
-                YawVector = curYawInput
+                YawVector = curYawInput,
+                Thrust = _playerControls.Hover.Thrust.ReadValue<float>(),
+                Brakes = _playerControls.Hover.Brakes.ReadValue<float>()
             };
         }
     }

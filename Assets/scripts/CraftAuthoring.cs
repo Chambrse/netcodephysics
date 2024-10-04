@@ -6,6 +6,7 @@ using UnityEngine;
 public struct CraftTuning : IComponentData
 {
     public float yawSpeed;
+
 }
 
 public struct PlayerTag : IComponentData { }
@@ -14,6 +15,24 @@ public struct PlayerTag : IComponentData { }
 public class CraftAuthoring : MonoBehaviour
 {
     public float yawspeed = 1.0f;
+
+    public float pitchSpeed = 1.0f;
+
+    //editor group
+    [Header("Rotational Gains")]
+    
+    public float Kp_ROT = 1.0f;
+
+    public float Ki_ROT = 0.0f;
+
+    public float Kd_ROT = 1.0f;
+
+    [Header("Linear Gains")]
+    public float Kp_LIN = 1.0f;
+
+    public float Ki_LIN = 0.0f;
+
+    public float Kd_LIN = 1.0f;
 
     class Baker : Baker<CraftAuthoring>
     {
@@ -29,13 +48,16 @@ public class CraftAuthoring : MonoBehaviour
             AddComponent<CraftPhysicsProperties>(entity);
             AddComponent<CraftInput>(entity);
             AddComponent<TargetRotation>(entity);
-            // AddComponent<LocalTransform>(entity);
-            // AddComponent<LocalToWorld>(entity);
+            AddComponent<AngularAcceleration>(entity);
+            AddComponent<TargetRelativeVelocity>(entity);
+            AddComponent<PreviousVelocity>(entity);
+            AddComponent<VerticalAcceleration>(entity);
+
             // Create a new entity for the PID controller using CreateAdditionalEntity
-            var rotationPID = CreateAdditionalEntity(TransformUsageFlags.None, false, "RotationPID");
+            var rotationPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "RotationPID");
 
             // Add PID components to the new PID entity using Baker API
-            AddComponent(rotationPID, new PIDGainSet { Kp = 1.0f, Ki = 0.0f, Kd = 0.0f });
+            AddComponent(rotationPID, new PIDGainSet { Kp = authoring.Kp_ROT, Ki = authoring.Ki_ROT, Kd = authoring.Kd_ROT });  
             AddComponent(rotationPID, new PIDInputs_Vector
             {
                 AngleError = new float3(0, 0, 0),
@@ -45,9 +67,15 @@ public class CraftAuthoring : MonoBehaviour
 
             // Set the parent component for the PID entity using Baker API
             AddComponent(rotationPID, new Parent { Value = entity });
-            // Also, ensure the PID controller entity has transform-related components
-            AddComponent<LocalTransform>(rotationPID);
-            AddComponent<LocalToWorld>(rotationPID);
+
+            var hoverHeightPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HoverHeightPID");
+
+            AddComponent(hoverHeightPID, new PIDGainSet { Kp = authoring.Kp_LIN, Ki = authoring.Ki_LIN, Kd = authoring.Kd_LIN });
+            AddComponent(hoverHeightPID, new PIDInputs_Scalar { Error = 0 });
+            AddComponent(hoverHeightPID, new PIDOutputs_Scalar { linearAcceleration = 0 });
+
+            AddComponent(hoverHeightPID, new Parent { Value = entity });
+            
         }
     }
 }

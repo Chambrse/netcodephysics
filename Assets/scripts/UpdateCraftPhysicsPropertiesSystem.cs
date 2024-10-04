@@ -40,12 +40,17 @@ public partial struct UpdateCraftPhysicsPropertiesSystem : ISystem
         new UpdateCraftPhysicsPropertiesJob
         {
             DeltaTime = deltaTime
-        }.Schedule();
+        }.ScheduleParallel();
 
-        new setCurrentStateOnControllers
+        new setCurrentStateOnVectorPIDs
         {
             physicsVelocityLookup = physicsVelocityLookup
-        }.Schedule();
+        }.ScheduleParallel();
+
+        new setCurrentStateOnScalarPIDs
+        {
+            physicsVelocityLookup = physicsVelocityLookup
+        }.ScheduleParallel();
 
     }
 }
@@ -66,7 +71,7 @@ public partial struct UpdateCraftPhysicsPropertiesJob : IJobEntity
 }
 
 [BurstCompile]
-public partial struct setCurrentStateOnControllers : IJobEntity
+public partial struct setCurrentStateOnVectorPIDs : IJobEntity
 {
 
     // entitymanager
@@ -74,9 +79,27 @@ public partial struct setCurrentStateOnControllers : IJobEntity
     [ReadOnly] public ComponentLookup<PhysicsVelocity> physicsVelocityLookup;
 
     [BurstCompile]
-    private void Execute(ref PIDInputs_Vector pidInputs, in Parent parent)
+    private void Execute(ref PIDInputs_Vector PIV, in Parent parent)
     {
-        pidInputs.AngularVelocity = physicsVelocityLookup[parent.Value].Angular;
+        PIV.AngularVelocity = physicsVelocityLookup[parent.Value].Angular;
+        // PIS.Velocity = physicsVelocityLookup[parent.Value].Linear.y;
     }
 }
+
+[BurstCompile]
+public partial struct setCurrentStateOnScalarPIDs : IJobEntity
+{
+
+    // entitymanager
+    // public EntityManager entityManager;
+    [ReadOnly] public ComponentLookup<PhysicsVelocity> physicsVelocityLookup;
+
+    [BurstCompile]
+    private void Execute(ref PIDInputs_Scalar PIS, in Parent parent)
+    {
+        // PIV.AngularVelocity = physicsVelocityLookup[parent.Value].Angular;
+        PIS.DeltaError = physicsVelocityLookup[parent.Value].Linear.y;
+    }
+}
+
 

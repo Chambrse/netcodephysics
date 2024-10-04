@@ -37,24 +37,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""HoverHeightUp"",
-                    ""type"": ""Button"",
-                    ""id"": ""fa26c0eb-b02c-4cdd-9f6e-47bfd9e4de20"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""HoverHeightDown"",
-                    ""type"": ""Button"",
-                    ""id"": ""15cf642d-505c-43bd-9e5a-6098a11d5435"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""Stop"",
                     ""type"": ""Button"",
                     ""id"": ""5bb3622d-e55d-4695-9a6d-fbac2bd73950"",
@@ -77,15 +59,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""type"": ""Value"",
                     ""id"": ""b241bce1-ff00-4cfe-8214-3779840d42b5"",
                     ""expectedControlType"": ""Axis"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""Fire"",
-                    ""type"": ""Value"",
-                    ""id"": ""bf411e5a-2ed7-4e36-b9af-e6c1a147cc2c"",
-                    ""expectedControlType"": ""Digital"",
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
@@ -118,33 +91,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": false
                 },
                 {
-                    ""name"": ""RightStickY"",
-                    ""type"": ""Value"",
-                    ""id"": ""adcd14e4-7c14-4e64-aace-cd6d1bc77340"",
-                    ""expectedControlType"": ""Axis"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""CycleCamera"",
-                    ""type"": ""Button"",
-                    ""id"": ""b88876d6-e741-4bba-9409-bd0558154449"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""LandingGear"",
-                    ""type"": ""Button"",
-                    ""id"": ""4633b9b5-8160-475b-ace5-be939f76224d"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
-                },
-                {
                     ""name"": ""CameraLook"",
                     ""type"": ""Value"",
                     ""id"": ""5906b94e-f834-46c1-b140-c045e5128bc3"",
@@ -161,6 +107,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
+                },
+                {
+                    ""name"": ""Brakes"",
+                    ""type"": ""Value"",
+                    ""id"": ""65eda8f1-a42b-4b39-b020-a455d46a9cf0"",
+                    ""expectedControlType"": ""Analog"",
+                    ""processors"": """",
+                    ""interactions"": """",
+                    ""initialStateCheck"": true
                 }
             ],
             ""bindings"": [
@@ -229,50 +184,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Move"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""73ecea94-207e-4dfd-953c-f4109bb4ec56"",
-                    ""path"": ""<Gamepad>/dpad/up"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightUp"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""d2c164d4-45b0-495a-a924-a754c5658607"",
-                    ""path"": ""<Keyboard>/shift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightUp"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""35f032da-cb2e-433d-9d17-c24c3512f61c"",
-                    ""path"": ""<Gamepad>/dpad/down"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightDown"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""e4aacef7-5c45-4a7e-8038-ad1d30fa600e"",
-                    ""path"": ""<Keyboard>/ctrl"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightDown"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
@@ -385,17 +296,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""isPartOfComposite"": true
                 },
                 {
-                    ""name"": """",
-                    ""id"": ""17bf24cc-9325-4382-9762-077c44f55b71"",
-                    ""path"": ""<Gamepad>/rightTrigger"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Fire"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
                     ""name"": ""1D Axis"",
                     ""id"": ""22396e5e-bde5-4a29-8b83-a71753b0430d"",
                     ""path"": ""1DAxis"",
@@ -464,7 +364,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 {
                     ""name"": """",
                     ""id"": ""38a20039-ff1e-40bd-bd70-90297fbb7be5"",
-                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""path"": ""<Gamepad>/rightTrigger"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -491,39 +391,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""groups"": """",
                     ""action"": ""SwitchMode"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""d15b99ae-d28a-450d-9a7c-40b73e4c159b"",
-                    ""path"": ""<Gamepad>/rightStick/y"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""RightStickY"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""c5605807-c0c1-4ced-9f4b-82e49c2242fa"",
-                    ""path"": ""<Gamepad>/dpad/right"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""CycleCamera"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""411488b0-dc6c-4477-94f7-0d54e806cbbd"",
-                    ""path"": ""<Gamepad>/dpad/down"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""LandingGear"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -559,6 +426,17 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""ToggleMenu"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""903c9b54-ea3b-466f-ba4f-da89a5a370d7"",
+                    ""path"": ""<Gamepad>/leftTrigger"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Brakes"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -568,20 +446,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // Hover
         m_Hover = asset.FindActionMap("Hover", throwIfNotFound: true);
         m_Hover_Move = m_Hover.FindAction("Move", throwIfNotFound: true);
-        m_Hover_HoverHeightUp = m_Hover.FindAction("HoverHeightUp", throwIfNotFound: true);
-        m_Hover_HoverHeightDown = m_Hover.FindAction("HoverHeightDown", throwIfNotFound: true);
         m_Hover_Stop = m_Hover.FindAction("Stop", throwIfNotFound: true);
         m_Hover_Ignite = m_Hover.FindAction("Ignite", throwIfNotFound: true);
         m_Hover_HoverHeightVector = m_Hover.FindAction("HoverHeightVector", throwIfNotFound: true);
-        m_Hover_Fire = m_Hover.FindAction("Fire", throwIfNotFound: true);
         m_Hover_YawVector = m_Hover.FindAction("YawVector", throwIfNotFound: true);
         m_Hover_Thrust = m_Hover.FindAction("Thrust", throwIfNotFound: true);
         m_Hover_SwitchMode = m_Hover.FindAction("SwitchMode", throwIfNotFound: true);
-        m_Hover_RightStickY = m_Hover.FindAction("RightStickY", throwIfNotFound: true);
-        m_Hover_CycleCamera = m_Hover.FindAction("CycleCamera", throwIfNotFound: true);
-        m_Hover_LandingGear = m_Hover.FindAction("LandingGear", throwIfNotFound: true);
         m_Hover_CameraLook = m_Hover.FindAction("CameraLook", throwIfNotFound: true);
         m_Hover_ToggleMenu = m_Hover.FindAction("ToggleMenu", throwIfNotFound: true);
+        m_Hover_Brakes = m_Hover.FindAction("Brakes", throwIfNotFound: true);
     }
 
     public void Dispose()
@@ -644,39 +517,29 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Hover;
     private List<IHoverActions> m_HoverActionsCallbackInterfaces = new List<IHoverActions>();
     private readonly InputAction m_Hover_Move;
-    private readonly InputAction m_Hover_HoverHeightUp;
-    private readonly InputAction m_Hover_HoverHeightDown;
     private readonly InputAction m_Hover_Stop;
     private readonly InputAction m_Hover_Ignite;
     private readonly InputAction m_Hover_HoverHeightVector;
-    private readonly InputAction m_Hover_Fire;
     private readonly InputAction m_Hover_YawVector;
     private readonly InputAction m_Hover_Thrust;
     private readonly InputAction m_Hover_SwitchMode;
-    private readonly InputAction m_Hover_RightStickY;
-    private readonly InputAction m_Hover_CycleCamera;
-    private readonly InputAction m_Hover_LandingGear;
     private readonly InputAction m_Hover_CameraLook;
     private readonly InputAction m_Hover_ToggleMenu;
+    private readonly InputAction m_Hover_Brakes;
     public struct HoverActions
     {
         private @PlayerControls m_Wrapper;
         public HoverActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Hover_Move;
-        public InputAction @HoverHeightUp => m_Wrapper.m_Hover_HoverHeightUp;
-        public InputAction @HoverHeightDown => m_Wrapper.m_Hover_HoverHeightDown;
         public InputAction @Stop => m_Wrapper.m_Hover_Stop;
         public InputAction @Ignite => m_Wrapper.m_Hover_Ignite;
         public InputAction @HoverHeightVector => m_Wrapper.m_Hover_HoverHeightVector;
-        public InputAction @Fire => m_Wrapper.m_Hover_Fire;
         public InputAction @YawVector => m_Wrapper.m_Hover_YawVector;
         public InputAction @Thrust => m_Wrapper.m_Hover_Thrust;
         public InputAction @SwitchMode => m_Wrapper.m_Hover_SwitchMode;
-        public InputAction @RightStickY => m_Wrapper.m_Hover_RightStickY;
-        public InputAction @CycleCamera => m_Wrapper.m_Hover_CycleCamera;
-        public InputAction @LandingGear => m_Wrapper.m_Hover_LandingGear;
         public InputAction @CameraLook => m_Wrapper.m_Hover_CameraLook;
         public InputAction @ToggleMenu => m_Wrapper.m_Hover_ToggleMenu;
+        public InputAction @Brakes => m_Wrapper.m_Hover_Brakes;
         public InputActionMap Get() { return m_Wrapper.m_Hover; }
         public void Enable() { Get().Enable(); }
         public void Disable() { Get().Disable(); }
@@ -689,12 +552,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
-            @HoverHeightUp.started += instance.OnHoverHeightUp;
-            @HoverHeightUp.performed += instance.OnHoverHeightUp;
-            @HoverHeightUp.canceled += instance.OnHoverHeightUp;
-            @HoverHeightDown.started += instance.OnHoverHeightDown;
-            @HoverHeightDown.performed += instance.OnHoverHeightDown;
-            @HoverHeightDown.canceled += instance.OnHoverHeightDown;
             @Stop.started += instance.OnStop;
             @Stop.performed += instance.OnStop;
             @Stop.canceled += instance.OnStop;
@@ -704,9 +561,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @HoverHeightVector.started += instance.OnHoverHeightVector;
             @HoverHeightVector.performed += instance.OnHoverHeightVector;
             @HoverHeightVector.canceled += instance.OnHoverHeightVector;
-            @Fire.started += instance.OnFire;
-            @Fire.performed += instance.OnFire;
-            @Fire.canceled += instance.OnFire;
             @YawVector.started += instance.OnYawVector;
             @YawVector.performed += instance.OnYawVector;
             @YawVector.canceled += instance.OnYawVector;
@@ -716,21 +570,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @SwitchMode.started += instance.OnSwitchMode;
             @SwitchMode.performed += instance.OnSwitchMode;
             @SwitchMode.canceled += instance.OnSwitchMode;
-            @RightStickY.started += instance.OnRightStickY;
-            @RightStickY.performed += instance.OnRightStickY;
-            @RightStickY.canceled += instance.OnRightStickY;
-            @CycleCamera.started += instance.OnCycleCamera;
-            @CycleCamera.performed += instance.OnCycleCamera;
-            @CycleCamera.canceled += instance.OnCycleCamera;
-            @LandingGear.started += instance.OnLandingGear;
-            @LandingGear.performed += instance.OnLandingGear;
-            @LandingGear.canceled += instance.OnLandingGear;
             @CameraLook.started += instance.OnCameraLook;
             @CameraLook.performed += instance.OnCameraLook;
             @CameraLook.canceled += instance.OnCameraLook;
             @ToggleMenu.started += instance.OnToggleMenu;
             @ToggleMenu.performed += instance.OnToggleMenu;
             @ToggleMenu.canceled += instance.OnToggleMenu;
+            @Brakes.started += instance.OnBrakes;
+            @Brakes.performed += instance.OnBrakes;
+            @Brakes.canceled += instance.OnBrakes;
         }
 
         private void UnregisterCallbacks(IHoverActions instance)
@@ -738,12 +586,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
-            @HoverHeightUp.started -= instance.OnHoverHeightUp;
-            @HoverHeightUp.performed -= instance.OnHoverHeightUp;
-            @HoverHeightUp.canceled -= instance.OnHoverHeightUp;
-            @HoverHeightDown.started -= instance.OnHoverHeightDown;
-            @HoverHeightDown.performed -= instance.OnHoverHeightDown;
-            @HoverHeightDown.canceled -= instance.OnHoverHeightDown;
             @Stop.started -= instance.OnStop;
             @Stop.performed -= instance.OnStop;
             @Stop.canceled -= instance.OnStop;
@@ -753,9 +595,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @HoverHeightVector.started -= instance.OnHoverHeightVector;
             @HoverHeightVector.performed -= instance.OnHoverHeightVector;
             @HoverHeightVector.canceled -= instance.OnHoverHeightVector;
-            @Fire.started -= instance.OnFire;
-            @Fire.performed -= instance.OnFire;
-            @Fire.canceled -= instance.OnFire;
             @YawVector.started -= instance.OnYawVector;
             @YawVector.performed -= instance.OnYawVector;
             @YawVector.canceled -= instance.OnYawVector;
@@ -765,21 +604,15 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @SwitchMode.started -= instance.OnSwitchMode;
             @SwitchMode.performed -= instance.OnSwitchMode;
             @SwitchMode.canceled -= instance.OnSwitchMode;
-            @RightStickY.started -= instance.OnRightStickY;
-            @RightStickY.performed -= instance.OnRightStickY;
-            @RightStickY.canceled -= instance.OnRightStickY;
-            @CycleCamera.started -= instance.OnCycleCamera;
-            @CycleCamera.performed -= instance.OnCycleCamera;
-            @CycleCamera.canceled -= instance.OnCycleCamera;
-            @LandingGear.started -= instance.OnLandingGear;
-            @LandingGear.performed -= instance.OnLandingGear;
-            @LandingGear.canceled -= instance.OnLandingGear;
             @CameraLook.started -= instance.OnCameraLook;
             @CameraLook.performed -= instance.OnCameraLook;
             @CameraLook.canceled -= instance.OnCameraLook;
             @ToggleMenu.started -= instance.OnToggleMenu;
             @ToggleMenu.performed -= instance.OnToggleMenu;
             @ToggleMenu.canceled -= instance.OnToggleMenu;
+            @Brakes.started -= instance.OnBrakes;
+            @Brakes.performed -= instance.OnBrakes;
+            @Brakes.canceled -= instance.OnBrakes;
         }
 
         public void RemoveCallbacks(IHoverActions instance)
@@ -800,19 +633,14 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IHoverActions
     {
         void OnMove(InputAction.CallbackContext context);
-        void OnHoverHeightUp(InputAction.CallbackContext context);
-        void OnHoverHeightDown(InputAction.CallbackContext context);
         void OnStop(InputAction.CallbackContext context);
         void OnIgnite(InputAction.CallbackContext context);
         void OnHoverHeightVector(InputAction.CallbackContext context);
-        void OnFire(InputAction.CallbackContext context);
         void OnYawVector(InputAction.CallbackContext context);
         void OnThrust(InputAction.CallbackContext context);
         void OnSwitchMode(InputAction.CallbackContext context);
-        void OnRightStickY(InputAction.CallbackContext context);
-        void OnCycleCamera(InputAction.CallbackContext context);
-        void OnLandingGear(InputAction.CallbackContext context);
         void OnCameraLook(InputAction.CallbackContext context);
         void OnToggleMenu(InputAction.CallbackContext context);
+        void OnBrakes(InputAction.CallbackContext context);
     }
 }

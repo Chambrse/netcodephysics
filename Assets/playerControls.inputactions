@@ -15,24 +15,6 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "HoverHeightUp",
-                    "type": "Button",
-                    "id": "fa26c0eb-b02c-4cdd-9f6e-47bfd9e4de20",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "HoverHeightDown",
-                    "type": "Button",
-                    "id": "15cf642d-505c-43bd-9e5a-6098a11d5435",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "Stop",
                     "type": "Button",
                     "id": "5bb3622d-e55d-4695-9a6d-fbac2bd73950",
@@ -55,15 +37,6 @@
                     "type": "Value",
                     "id": "b241bce1-ff00-4cfe-8214-3779840d42b5",
                     "expectedControlType": "Axis",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "Fire",
-                    "type": "Value",
-                    "id": "bf411e5a-2ed7-4e36-b9af-e6c1a147cc2c",
-                    "expectedControlType": "Digital",
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": true
@@ -96,33 +69,6 @@
                     "initialStateCheck": false
                 },
                 {
-                    "name": "RightStickY",
-                    "type": "Value",
-                    "id": "adcd14e4-7c14-4e64-aace-cd6d1bc77340",
-                    "expectedControlType": "Axis",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": true
-                },
-                {
-                    "name": "CycleCamera",
-                    "type": "Button",
-                    "id": "b88876d6-e741-4bba-9409-bd0558154449",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
-                    "name": "LandingGear",
-                    "type": "Button",
-                    "id": "4633b9b5-8160-475b-ace5-be939f76224d",
-                    "expectedControlType": "Button",
-                    "processors": "",
-                    "interactions": "",
-                    "initialStateCheck": false
-                },
-                {
                     "name": "CameraLook",
                     "type": "Value",
                     "id": "5906b94e-f834-46c1-b140-c045e5128bc3",
@@ -139,6 +85,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "Brakes",
+                    "type": "Value",
+                    "id": "65eda8f1-a42b-4b39-b020-a455d46a9cf0",
+                    "expectedControlType": "Analog",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": true
                 }
             ],
             "bindings": [
@@ -207,50 +162,6 @@
                     "action": "Move",
                     "isComposite": false,
                     "isPartOfComposite": true
-                },
-                {
-                    "name": "",
-                    "id": "73ecea94-207e-4dfd-953c-f4109bb4ec56",
-                    "path": "<Gamepad>/dpad/up",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "HoverHeightUp",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d2c164d4-45b0-495a-a924-a754c5658607",
-                    "path": "<Keyboard>/shift",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "HoverHeightUp",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "35f032da-cb2e-433d-9d17-c24c3512f61c",
-                    "path": "<Gamepad>/dpad/down",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "HoverHeightDown",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "e4aacef7-5c45-4a7e-8038-ad1d30fa600e",
-                    "path": "<Keyboard>/ctrl",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "HoverHeightDown",
-                    "isComposite": false,
-                    "isPartOfComposite": false
                 },
                 {
                     "name": "",
@@ -363,17 +274,6 @@
                     "isPartOfComposite": true
                 },
                 {
-                    "name": "",
-                    "id": "17bf24cc-9325-4382-9762-077c44f55b71",
-                    "path": "<Gamepad>/rightTrigger",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "Fire",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
                     "name": "1D Axis",
                     "id": "22396e5e-bde5-4a29-8b83-a71753b0430d",
                     "path": "1DAxis",
@@ -442,7 +342,7 @@
                 {
                     "name": "",
                     "id": "38a20039-ff1e-40bd-bd70-90297fbb7be5",
-                    "path": "<Gamepad>/leftTrigger",
+                    "path": "<Gamepad>/rightTrigger",
                     "interactions": "",
                     "processors": "",
                     "groups": "",
@@ -469,39 +369,6 @@
                     "processors": "",
                     "groups": "",
                     "action": "SwitchMode",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "d15b99ae-d28a-450d-9a7c-40b73e4c159b",
-                    "path": "<Gamepad>/rightStick/y",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "RightStickY",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "c5605807-c0c1-4ced-9f4b-82e49c2242fa",
-                    "path": "<Gamepad>/dpad/right",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "CycleCamera",
-                    "isComposite": false,
-                    "isPartOfComposite": false
-                },
-                {
-                    "name": "",
-                    "id": "411488b0-dc6c-4477-94f7-0d54e806cbbd",
-                    "path": "<Gamepad>/dpad/down",
-                    "interactions": "",
-                    "processors": "",
-                    "groups": "",
-                    "action": "LandingGear",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -535,6 +402,17 @@
                     "processors": "",
                     "groups": "",
                     "action": "ToggleMenu",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "903c9b54-ea3b-466f-ba4f-da89a5a370d7",
+                    "path": "<Gamepad>/leftTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": "",
+                    "action": "Brakes",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }
