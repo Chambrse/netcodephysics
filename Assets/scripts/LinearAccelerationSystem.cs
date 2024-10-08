@@ -3,16 +3,10 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Transforms;
-// using Unity.Jobs;
-using Unity.Collections;
-using Unity.Physics.Systems;
-using Unity.NetCode;
-// using System.Diagnostics;
-using UnityEngine;
 
 public struct VerticalAcceleration : IComponentData
 {
-    public float3 verticalAcceleration;
+    public float verticalAcceleration;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -43,7 +37,7 @@ public partial struct LinearAccelerationSystem : ISystem
 
         // physicsWorldLookup.Update(ref state);
 
-        Debug.Log("LinearAccelerationSystem OnUpdate");
+        // Debug.Log("LinearAccelerationSystem OnUpdate");
         // Initialize ComponentLookup for angular acceleration
         // var angularAccelerationLookup = state.GetComponentLookup<AngularAcceleration>();
         var linearAccelerationLookup = state.GetComponentLookup<VerticalAcceleration>();
@@ -79,7 +73,7 @@ public partial struct getVerticalAcceleration : IJobEntity
         ref Parent parent)
     {
         // Retrieve the desired angular acceleration from the PID outputs
-        float3 desiredVerticalAcceleration = pidOutputs.linearAcceleration;
+        float desiredVerticalAcceleration = pidOutputs.linearAcceleration;
         if (linearAccelerationLookup.HasComponent(parent.Value))
         {
             linearAccelerationLookup[parent.Value] = new VerticalAcceleration { verticalAcceleration = desiredVerticalAcceleration };
@@ -97,18 +91,28 @@ public partial struct ApplyHoverForce : IJobEntity
         in VerticalAcceleration verticalAcceleration,
         ref PhysicsVelocity physicsVelocity,
         in PhysicsMass physicsMass,
+        in LocalTransform localTransform,
         in CraftInput craftInput)
     {
 
-        // // gravity
-        // var gravity = new float3(0, -9.81f, 0);
+        // get rotation
+        //quaternion rotation = physicsMass.Transform.rot;
+        quaternion rotation = localTransform.Rotation;
+        //quaternion rotaion = localTransform.Rotation;
 
-        // var mg = 1/physicsMass.InverseMass * gravity;
+        // Define the world +y direction as a vector
+        float3 worldUp = new float3(0, 1, 0);
 
-        physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration.y + 9.81f +(craftInput.Thrust*100)) * DeltaTime;
-            // physicsVelocity.Linear.y += 10f * DeltaTime;
+        // Rotate worldUp vector into the entity's local space using the rotation quaternion
+        float3 localUp = math.mul(rotation, worldUp);
 
-        // Debug.Print("mg: " + mg);
-        // Debug.Log("mg: " + mg);
+
+        float totalVerticalAcceleration = verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100);
+
+        float localAccelerationMagnitude = totalVerticalAcceleration / math.dot(localUp, worldUp);
+
+
+        // physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100)) * DeltaTime;
+        physicsVelocity.Linear += localUp * (localAccelerationMagnitude * DeltaTime);
     }
 }
