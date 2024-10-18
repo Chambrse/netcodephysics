@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
+using Unity.Entities.Serialization;
 
 public struct CraftTuning : IComponentData
 {
@@ -10,6 +11,14 @@ public struct CraftTuning : IComponentData
 }
 
 public struct PlayerTag : IComponentData { }
+
+//public struct DebugVizEntityPrefabs : IComponentData
+//{
+//    public Entity rotationVizPrefab;
+//    public Entity vectorVizPrefab;
+//}
+
+
 
 [DisallowMultipleComponent]
 public class CraftAuthoring : MonoBehaviour
@@ -75,7 +84,10 @@ public class CraftAuthoring : MonoBehaviour
             AddComponent(hoverHeightPID, new PIDOutputs_Scalar { linearAcceleration = 0 });
 
             AddComponent(hoverHeightPID, new Parent { Value = entity });
-            
+
+
+
+
         }
     }
 }

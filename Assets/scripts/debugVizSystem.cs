@@ -4,6 +4,7 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Transforms;
 using Unity.Mathematics;
+using System.Net;
 
 //debugsettings icomponentdata
 public struct DebugSettings : IComponentData
@@ -12,15 +13,6 @@ public struct DebugSettings : IComponentData
     public bool ShowTargetRotation;
 }
 
-public struct DebugVizPrefabs : IComponentData
-{
-    public Entity rotationVizPrefab;
-}
-
-public struct VizLabelComponent : IComponentData
-{
-    public FixedString64Bytes Label;  // Example: "ShowTargetRotation"
-}
 
 //debugsystem systembase
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -29,96 +21,183 @@ public struct VizLabelComponent : IComponentData
 public partial struct DebugVizSystem : ISystem
 {
 
-    private EntityManager EntityManager;
+    private DebugSettings _debugSettings;
+    private EntityManager _entityManager;
 
     //requireforupdate debugsettings
     public void OnCreate(ref SystemState state)
     {
+
+        //_entityManager = state.EntityManager;
+
+        // Create an EntityQuery to check if any entity has the DebugSettings component
+        EntityQuery debugSettingsQuery = state.EntityManager.CreateEntityQuery(ComponentType.ReadOnly<DebugSettings>());
+
+
+        // Check if the DebugSettings singleton already exists
+        if (debugSettingsQuery.IsEmpty)
+        {
+            // Error is produced referencing this line complaining that getsingletonentity didn't find a match.
+            Entity debugSettingsEntity = state.EntityManager.CreateEntity();
+            state.EntityManager.AddComponentData(debugSettingsEntity, new DebugSettings
+            {
+                DebugMode = true,          // Initial value for DebugMode
+                ShowTargetRotation = true  // Initial value for ShowTargetRotation
+            });
+
+            // Optionally, you can name the entity for easier debugging
+            state.EntityManager.SetName(debugSettingsEntity, "DebugSettingsSingleton");
+        }
+
+        debugSettingsQuery.Dispose();
+
         state.RequireForUpdate<DebugSettings>();
         state.RequireForUpdate<PlayerTag>();
 
         //entitymanager
-        EntityManager = state.EntityManager;
+
+        _debugSettings = SystemAPI.GetSingleton<DebugSettings>();
     }
+
+    [BurstCompile]
+    //[BurstCompile(Disable = true)]
+    private void UpdateRotationVisualizations(ref SystemState state)
+    {
+        foreach (var (localTransform, parent, rotationViz) in
+            SystemAPI.Query<RefRW<LocalTransform>, RefRO<Parent>>()
+            .WithAll<RotationViz>()
+            .WithEntityAccess())
+        {
+            // Enable or disable based on DebugSettings
+            if (_debugSettings.ShowTargetRotation)
+            {
+                // If disabled, remove the Disabled component to make it active
+                if (state.EntityManager.HasComponent<Disabled>(rotationViz))
+                {
+                    state.EntityManager.RemoveComponent<Disabled>(rotationViz);
+                }
+
+                Entity playerEntity = parent.ValueRO.Value;
+
+                //get targetrotation component from playerEntity
+                TargetRotation targetRotation = state.EntityManager.GetComponentData<TargetRotation>(playerEntity);
+                LocalToWorld playerLocaltoWorld = state.EntityManager.GetComponentData<LocalToWorld>(playerEntity);
+
+                LocalTransform currentTransform = localTransform.ValueRO;
+
+                quaternion parentRotation = math.inverse(playerLocaltoWorld.Rotation);
+                quaternion localRotation = math.mul(parentRotation, targetRotation.Value);
+
+                state.EntityManager.SetComponentData<LocalTransform>(rotationViz, new LocalTransform
+                {
+                    Position = currentTransform.Position, // Keep the same position
+                    Rotation = localRotation,               // Update the rotation
+                    Scale = currentTransform.Scale        // Keep the same scale
+                });
+
+            }
+            else
+            {
+                // Disable the visualization if active
+                if (!state.EntityManager.HasComponent<Disabled>(rotationViz))
+                {
+                    state.EntityManager.AddComponent<Disabled>(rotationViz);
+                }
+            }
+        }
+    }
+
+
+    [BurstCompile]
+    private void UpdateVectorVisualizations(ref SystemState state)
+    {
+
+        var ecb = new EntityCommandBuffer(Allocator.TempJob);
+
+
+        foreach (var (localTransform, parent, VectorViz) in
+    SystemAPI.Query<RefRW<LocalTransform>, RefRO<Parent>>()
+    .WithAll<LinearVectorViz>()
+    .WithEntityAccess())
+        {
+            //// If disabled, remove the Disabled component to make it active
+            //if (state.EntityManager.HasComponent<Disabled>(VectorViz))
+            //{
+            //    state.EntityManager.RemoveComponent<Disabled>(VectorViz);
+            //}
+
+
+
+            Entity playerEntity = parent.ValueRO.Value;
+
+            float localVerticalAcceleration = state.EntityManager.GetComponentData<VerticalAcceleration>(playerEntity).localVerticalAcceleration;
+
+            // Get the current LocalTransform values
+            //LocalTransform currentTransform = localTransform.ValueRW;
+
+            //state.EntityManager.SetComponentData(VectorViz, new LocalTransform
+            //{
+            //    Position = currentTransform.Position, // Keep the same position
+            //    Rotation = currentTransform.Rotation,               // Update the rotation
+            //    Scale = currentTransform.Scale  // Scale only Y-axis
+            //});
+
+
+            float4x4 nonUniformScaleMatrix = new float4x4(
+    new float4(1, 0, 0, 0),                        // X-axis (1 for no scaling)
+    new float4(0, localVerticalAcceleration, 0, 0),// Y-axis (scaled by localVerticalAcceleration)
+    new float4(0, 0, 1, 0),                        // Z-axis (1 for no scaling)
+    new float4(0, 0, 0, 1)                         // W (no translation in this matrix)
+            );
+
+            // Add or set the PostTransformMatrix for non-uniform scaling using the ECB
+            if (state.EntityManager.HasComponent<PostTransformMatrix>(VectorViz))
+            {
+                // If PostTransformMatrix already exists, set its value
+                ecb.SetComponent(VectorViz, new PostTransformMatrix
+                {
+                    Value = nonUniformScaleMatrix
+                });
+            }
+            else
+            {
+                // Otherwise, add the PostTransformMatrix component
+                ecb.AddComponent(VectorViz, new PostTransformMatrix
+                {
+                    Value = nonUniformScaleMatrix
+                });
+            }
+            //// Disable the visualiza;tion if VectorViz
+            //if (!state.EntityManager.HasComponent<Disabled>(VectorViz))
+            //{
+            //    state.EntityManager.AddComponent<Disabled>(VectorViz);
+            //}
+
+
+
+        }
+
+        // Execute the commands that were queued in the ECB
+        ecb.Playback(state.EntityManager);
+        ecb.Dispose(); // Dispose the command buffer once done
+    }
+
 
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-        Debug.Log("DebugVizSystem OnUpdate");
 
-        // Get the DebugSettings and the prefab for rotation visualization
-        var debugSettings = SystemAPI.GetSingleton<DebugSettings>();
-        var rotationVizPrefab = SystemAPI.GetSingleton<DebugVizPrefabs>().rotationVizPrefab;
-        // var ecbSystem = SystemAPI.GetSingleton<BeginInitializationEntityCommandBufferSystem>();
-        var ecb = new EntityCommandBuffer(Allocator.Temp);
+        _debugSettings = SystemAPI.GetSingleton<DebugSettings>();
 
-
-        // Iterate over all player entities
-        foreach (var (targetRotation, playerEntity) in SystemAPI.Query<TargetRotation>().WithEntityAccess().WithAll<PlayerTag>())
+        if (!_debugSettings.DebugMode)
         {
-            if (debugSettings.DebugMode && debugSettings.ShowTargetRotation)
-            {
-                Debug.Log("ShowTargetRotation is enabled");
-                // Check if any child of this player already has a visualization with "ShowTargetRotation" label
-                bool vizExists = false;
-                Entity vizEntity = Entity.Null;
-
-                foreach (var (labelComponent, parent, entity) in SystemAPI.Query<RefRO<VizLabelComponent>, RefRO<Parent>>().WithEntityAccess())
-                {
-                    if (parent.ValueRO.Value == playerEntity && labelComponent.ValueRO.Label.Equals("ShowTargetRotation"))
-                    {
-                        vizExists = true;
-                        vizEntity = entity; // Store the entity reference for later updates
-                        break;
-                    }
-                }
-
-                // If the visualization doesn't exist, queue the structural changes
-                if (!vizExists)
-                {
-                    // Instantiate the rotation visualization prefab via the ECB
-                    Entity rotationVizEntity = ecb.Instantiate(rotationVizPrefab);
-
-                    // Attach it to the player entity
-                    ecb.AddComponent(rotationVizEntity, new Parent { Value = playerEntity });
-
-                    // Set the initial transform (adjust as needed)
-                    // ecb.SetComponent(rotationVizEntity, new LocalTransform());
-
-                    // Add the label component to the visualization
-                    ecb.AddComponent(rotationVizEntity, new VizLabelComponent
-                    {
-                        Label = new FixedString64Bytes("ShowTargetRotation")
-                    });
-
-                    Debug.Log("Rotation visualization instantiated and attached to player.");
-                }
-                else
-                {
-                    // Update the rotation of the existing visualization entity
-                    var currentTransform = EntityManager.GetComponentData<LocalTransform>(vizEntity);
-                    
-                    // Get the parent (playerEntity) LocalToWorld matrix to retrieve the global transform
-                    var parentLocalToWorld = EntityManager.GetComponentData<LocalToWorld>(playerEntity);
-                    
-                    // Calculate the local rotation relative to the parent by applying the inverse of the parent's rotation
-                    Quaternion parentRotationInverse = math.inverse(parentLocalToWorld.Rotation);
-                    Quaternion localRotation = math.mul(parentRotationInverse, targetRotation.Value);  // Local rotation
-
-                    // Set the updated transform with the new rotation
-                    EntityManager.SetComponentData(vizEntity, new LocalTransform
-                    {
-                        Position = currentTransform.Position, // Keep the same position
-                        Rotation = localRotation,               // Update the rotation
-                        Scale = currentTransform.Scale        // Keep the same scale
-                    });
-
-                    Debug.Log("Rotation visualization with label 'ShowTargetRotation' already exists.");
-                }
-            }
+            return;
         }
-        ecb.Playback(EntityManager);
-        ecb.Dispose();
+
+        UpdateRotationVisualizations(ref state);
+        UpdateVectorVisualizations(ref state);
+
+
     }
 }
 

@@ -7,6 +7,7 @@ using Unity.Transforms;
 public struct VerticalAcceleration : IComponentData
 {
     public float verticalAcceleration;
+    public float localVerticalAcceleration;
 }
 
 [UpdateInGroup(typeof(InitializationSystemGroup))]
@@ -88,7 +89,7 @@ public partial struct ApplyHoverForce : IJobEntity
 
     [BurstCompile]
     private void Execute(
-        in VerticalAcceleration verticalAcceleration,
+        ref VerticalAcceleration verticalAcceleration,
         ref PhysicsVelocity physicsVelocity,
         in PhysicsMass physicsMass,
         in LocalTransform localTransform,
@@ -111,6 +112,7 @@ public partial struct ApplyHoverForce : IJobEntity
 
         float localAccelerationMagnitude = totalVerticalAcceleration / math.dot(localUp, worldUp);
 
+        verticalAcceleration.localVerticalAcceleration = localAccelerationMagnitude;
 
         // physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100)) * DeltaTime;
         physicsVelocity.Linear += localUp * (localAccelerationMagnitude * DeltaTime);
