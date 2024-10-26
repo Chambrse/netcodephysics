@@ -15,7 +15,7 @@ public struct DebugSettings : IComponentData
 
 
 //debugsystem systembase
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 //client only
 [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
 public partial struct DebugVizSystem : ISystem
@@ -130,7 +130,7 @@ public partial struct DebugVizSystem : ISystem
 
             Entity playerEntity = parent.ValueRO.Value;
 
-            float localVerticalAcceleration = state.EntityManager.GetComponentData<VerticalAcceleration>(playerEntity).localVerticalAcceleration;
+            float localVerticalAcceleration = state.EntityManager.GetComponentData<LinearAcceleration>(playerEntity).localLinearAcceleration.y;
 
             // Get the current LocalTransform values
             //LocalTransform currentTransform = localTransform.ValueRW;
@@ -177,7 +177,7 @@ public partial struct DebugVizSystem : ISystem
 
         }
 
-        // Execute the commands that were queued in the ECB
+        // Execute the commands that were queued in the ECB 
         ecb.Playback(state.EntityManager);
         ecb.Dispose(); // Dispose the command buffer once done
     }

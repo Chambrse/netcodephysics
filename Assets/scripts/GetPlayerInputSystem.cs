@@ -16,7 +16,7 @@ public struct CraftInput : IInputComponentData
 }
 
 //client only
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
 public partial class GetPlayerInputSystem : SystemBase
 {
@@ -45,6 +45,7 @@ public partial class GetPlayerInputSystem : SystemBase
     {
         var curMoveInput = _playerControls.Hover.Move.ReadValue<Vector2>();
         var curYawInput = _playerControls.Hover.YawVector.ReadValue<float>();
+        var Brakes = _playerControls.Hover.Brakes.ReadValue<float>();
 
         foreach (var craftInput in SystemAPI.Query<RefRW<CraftInput>>().WithAll<PlayerTag>())
         {
@@ -53,7 +54,25 @@ public partial class GetPlayerInputSystem : SystemBase
                 Move = curMoveInput,
                 YawVector = curYawInput,
                 Thrust = _playerControls.Hover.Thrust.ReadValue<float>(),
-                Brakes = _playerControls.Hover.Brakes.ReadValue<float>()
+                Brakes = Brakes
+            };
+        }
+
+
+
+        foreach (var inputGain in SystemAPI.Query<RefRW<PIDGainFromInput>>().WithAll<linPIDTag>())
+        {
+            //gains.ValueRW = new PIDGainSet
+            //{
+            //    Kp = 1 + (Brakes * 10),
+            //    Ki = 0,
+            //    Kd = 1 + (Brakes * 10),
+
+            //};
+
+            inputGain.ValueRW = new PIDGainFromInput
+            {
+                GainInput = Brakes
             };
         }
     }

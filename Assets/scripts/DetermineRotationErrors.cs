@@ -5,6 +5,7 @@ using Unity.Transforms;
 using Unity.Burst;
 using UnityEngine;
 using Unity.Physics;
+using JetBrains.Annotations;
 
 public struct PhysicsProperties : IComponentData
 {
@@ -21,8 +22,8 @@ public struct TargetRotation : IComponentData
     public float3 targetRotationError;
 }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
-[UpdateAfter(typeof(UpdateCraftPhysicsPropertiesSystem))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateAfter(typeof(PIDSystemLinear))]
 [BurstCompile]
 public partial struct DetermineRotationErrors : ISystem
 {
@@ -30,13 +31,57 @@ public partial struct DetermineRotationErrors : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        var linearAccelerationLookup = state.GetComponentLookup<LinearAcceleration>();
+        var localTransformLookup = state.GetComponentLookup<LocalTransform>();  
+
+        // First job: getAngularAcceleration using ComponentLookup instead of EntityManager
+        var getLinearAccelerationJob = new getVerticalAcceleration
+        {
+            localTransformLookup = localTransformLookup,
+            linearAccelerationLookup = linearAccelerationLookup
+        }.Schedule(state.Dependency);
+
+        getLinearAccelerationJob.Complete();
+
+
         var deltaTime = SystemAPI.Time.DeltaTime;
-        new DetermineTargetRotationJob
+        var targetRotationJob = new DetermineTargetRotationJob
         {
             DeltaTime = deltaTime
-        }.Schedule();
+        }.ScheduleParallel(state.Dependency);
+
+        targetRotationJob.Complete();
     }
 }
+
+[BurstCompile]
+public partial struct getVerticalAcceleration : IJobEntity
+{
+    public ComponentLookup<LinearAcceleration> linearAccelerationLookup;
+    public ComponentLookup<LocalTransform> localTransformLookup;
+
+    [BurstCompile]
+    private void Execute(
+        in PIDOutputs_Vector pidOutputs,
+        ref Parent parent,
+        in linPIDTag linPID)
+    {
+        // Retrieve the desired linear acceleration from the PID outputs
+        if (linearAccelerationLookup.HasComponent(parent.Value) && localTransformLookup.HasComponent(parent.Value))
+        {
+            var linearAcceleration = new LinearAcceleration { linearAcceleration = pidOutputs.VectorResponse };
+
+            // Get the parent's local transform
+            var parentTransform = localTransformLookup[parent.Value];
+
+            // Convert the linear acceleration to the parent's local space
+            linearAcceleration.localLinearAcceleration = math.mul(math.inverse(parentTransform.Rotation), pidOutputs.VectorResponse);
+
+            linearAccelerationLookup[parent.Value] = linearAcceleration;
+        }
+    }
+}
+
 
 [BurstCompile]
 public partial struct DetermineTargetRotationJob : IJobEntity
@@ -50,6 +95,7 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         in LocalTransform localTransform,
         in CraftTuning tuning,
         in PhysicsVelocity physicsVelocity,
+        in LinearAcceleration linearAcceleration,
         ref TargetRotation targetRotationComponent)
     {
         float yawInput = craftInput.YawVector;
@@ -66,14 +112,36 @@ public partial struct DetermineTargetRotationJob : IJobEntity
 
         float tiltAngleX;
         float tiltAngleY;
+        float tiltAngleZ;
 
         float maxTiltAngle = 85;
+        Vector3 eulerTilt;
+        if (movementMode.mode == MovementModes.Hover_Stopping)
+        {
+            //do stuff with the output of the pid controller component that is a child of the entities returned by this query and has tag linPIDTag
+            float3 linAcceleration = linearAcceleration.localLinearAcceleration;
+            float3 linAccelerationWithGravityFeedForward = linAcceleration + new float3(0, 9.81f, 0);
 
-        tiltAngleX = craftInput.Move.x * maxTiltAngle;
-        tiltAngleY = craftInput.Move.y * maxTiltAngle;
+            float3 linAccelerationNorm = math.normalize(linAccelerationWithGravityFeedForward);
+
+            //var tiltAngleXRad = math.acos((linAccelerationNorm.y) / math.sqrt(math.pow(linAccelerationNorm.x, 2) + math.pow(linAccelerationNorm.y, 2)));
+            //var tiltAngleZRad = math.acos((linAccelerationNorm.y) / math.sqrt(math.pow(linAccelerationNorm.z, 2) + math.pow(linAccelerationNorm.y, 2)));
+            var tiltAngleXRad = math.atan(linAccelerationNorm.x / (linAccelerationNorm.y));
+            var tiltAngleZRad = math.atan(linAccelerationNorm.z / (linAccelerationNorm.y));
+            tiltAngleX = math.degrees(tiltAngleXRad);
+            tiltAngleZ = math.degrees(tiltAngleZRad);
+            eulerTilt = new Vector3(tiltAngleZ, 0, -tiltAngleX);
+
+        }
+        else
+        {
+            tiltAngleX = craftInput.Move.x * maxTiltAngle;
+            tiltAngleY = craftInput.Move.y * maxTiltAngle;
+        eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
+
+        }
 
         // Create quaternion rotation from Euler angles
-        Vector3 eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
         Quaternion tiltRotation = Quaternion.Euler(eulerTilt);
 
         // Combine target yaw rotation and tilt
@@ -82,6 +150,12 @@ public partial struct DetermineTargetRotationJob : IJobEntity
 
         // Calculate the delta rotation (difference between current and target)
         quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
+
+
+        //quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
+        //float3 axis;
+        //float angle;
+        //math.toAxisAngle(deltaRotation, out axis, out angle);
 
         // Extract the axis-angle representation of the delta rotation
         float angle;

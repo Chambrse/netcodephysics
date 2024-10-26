@@ -15,35 +15,37 @@ public struct PIDGainSet : IComponentData
     public float Kd;
 }
 
+public struct PIDGainFromInput : IComponentData
+{
+    public float GainInput;
+}
+
 public struct PIDInputs_Vector : IComponentData
 {
-    public float3 AngleError;
+    public float3 VectorError;
 
-    public float3 AngularVelocity;
+    public float3 DeltaVectorError;
 }
 
 public struct PIDOutputs_Vector : IComponentData
 {
-    public float3 angularAcceleration;
+    public float3 VectorResponse;
 }
 
-public struct PIDInputs_Scalar : IComponentData
-{
-    public float Error;
+//public struct PIDInputs_Scalar : IComponentData
+//{
+//    public float Error;
 
-    public float DeltaError;
-}
+//    public float DeltaError;
+//}
 
-public struct PIDOutputs_Scalar : IComponentData
-{
-    public float linearAcceleration;
-}
-
-public struct PID_Rotation_Tag : IComponentData { };
+//public struct PIDOutputs_Scalar : IComponentData
+//{
+//    public float linearAcceleration;
+//}
 
 
-
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [UpdateAfter(typeof(DetermineRotationErrors))]
 [BurstCompile]
 public partial struct PIDSystem : ISystem
@@ -81,12 +83,12 @@ public partial struct PIDSystem : ISystem
 
         // getVelocityErrorJobHandle.Complete();
 
-        var pidJobScalar = new PIDJob_Scalar
-        {
-            DeltaTime = SystemAPI.Time.DeltaTime
-        }.Schedule(pidJob);
+        //var pidJobScalar = new PIDJob_Scalar
+        //{
+        //    DeltaTime = SystemAPI.Time.DeltaTime
+        //}.Schedule(pidJob);
 
-        pidJobScalar.Complete();
+        //pidJobScalar.Complete();
     }
 }
 
@@ -99,55 +101,56 @@ public partial struct getAngleError : IJobEntity
     [BurstCompile]
     private void Execute(
         in Parent parent,
-        ref PIDInputs_Vector pidInputs)
+        ref PIDInputs_Vector pidInputs,
+        in rotPIDTag rotPID)
     {
         // Safely access the TargetRotation component from the parent entity
         if (targetRotationLookup.HasComponent(parent.Value))
         {
-            pidInputs.AngleError = targetRotationLookup[parent.Value].targetRotationError;
+            pidInputs.VectorError = targetRotationLookup[parent.Value].targetRotationError;
         }
     }
 }
 
-[BurstCompile]
-public partial struct getVelocityError : IJobEntity
-{
+//[BurstCompile]
+//public partial struct getVelocityError : IJobEntity
+//{
 
-    [ReadOnly] public ComponentLookup<TargetRelativeVelocity> targetRelativeVelocityLookup;
+//    [ReadOnly] public ComponentLookup<TargetRelativeVelocity> targetRelativeVelocityLookup;
 
-    [BurstCompile]
-    private void Execute(
-        in Parent parent,
-        ref PIDInputs_Scalar pidInputs)
-    {
-        // Safely access the TargetRelativeVelocity component from the parent entity
-        if (targetRelativeVelocityLookup.HasComponent(parent.Value))
-        {
-            pidInputs.Error = targetRelativeVelocityLookup[parent.Value].targetRelativeVelocityError;
-        }
-    }
+//    [BurstCompile]
+//    private void Execute(
+//        in Parent parent,
+//        ref PIDInputs_Scalar pidInputs)
+//    {
+//        // Safely access the TargetRelativeVelocity component from the parent entity
+//        if (targetRelativeVelocityLookup.HasComponent(parent.Value))
+//        {
+//            pidInputs.Error = targetRelativeVelocityLookup[parent.Value].targetRelativeVelocityError;
+//        }
+//    }
 
-}
+//}
 
-[BurstCompile]
-public partial struct PIDJob_Scalar : IJobEntity
-{
-    public float DeltaTime;
+//[BurstCompile]
+//public partial struct PIDJob_Scalar : IJobEntity
+//{
+//    public float DeltaTime;
 
-    [BurstCompile]
-    private void Execute(
-        in PIDGainSet pidGainSet,
-        in PIDInputs_Scalar pidInputs,
-        ref PIDOutputs_Scalar pidOutputs)
-    {
-        float error = pidInputs.Error;
-        float deltaError = pidInputs.DeltaError;
+//    [BurstCompile]
+//    private void Execute(
+//        in PIDGainSet pidGainSet,
+//        in PIDInputs_Scalar pidInputs,
+//        ref PIDOutputs_Scalar pidOutputs)
+//    {
+//        float error = pidInputs.Error;
+//        float deltaError = pidInputs.DeltaError;
 
-        pidOutputs.linearAcceleration =
-            pidGainSet.Kp * error -
-            pidGainSet.Kd * deltaError;
-    }
-}
+//        pidOutputs.linearAcceleration =
+//            pidGainSet.Kp * error -
+//            pidGainSet.Kd * deltaError;
+//    }
+//}
 
 [BurstCompile]
 public partial struct PIDJob : IJobEntity
@@ -158,18 +161,20 @@ public partial struct PIDJob : IJobEntity
     private void Execute(
         in PIDGainSet pidGainSet,
         in PIDInputs_Vector pidInputs,
-        ref PIDOutputs_Vector pidOutputs)
+        ref PIDOutputs_Vector pidOutputs,
+        in PIDGainFromInput inputGain,
+        in rotPIDTag rotPID)
     {
-        float3 error = pidInputs.AngleError;
-        float3 angularVelocity = pidInputs.AngularVelocity;
+        float3 error = pidInputs.VectorError;
+        float3 deltaError = pidInputs.DeltaVectorError;
 
-//      // todo: convert to Burst-compatible code   
-        // Vector3 errorVector = new Vector3(error.x, error.y, error.z);
-        // Vector3 angularVelocityVector = new Vector3(angularVelocity.x, angularVelocity.y, angularVelocity.z);
+        //pidOutputs.VectorResponse =
+        //    (pidGainSet.Kp + inputGain.GainInput) * error -
+        //    (pidGainSet.Kd + inputGain.GainInput) * deltaError;
 
-        pidOutputs.angularAcceleration =
-            pidGainSet.Kp * error -
-            pidGainSet.Kd * angularVelocity;
+        pidOutputs.VectorResponse =
+    (pidGainSet.Kp) * error -
+    (pidGainSet.Kd) * deltaError;
 
     }
 }

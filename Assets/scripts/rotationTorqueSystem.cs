@@ -13,7 +13,7 @@ public struct AngularAcceleration : IComponentData
     public float3 angularAcceleration;
 }   
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [UpdateAfter(typeof(PIDSystem))]
 [BurstCompile]
 public partial struct RotationTorqueSystem : ISystem
@@ -63,9 +63,10 @@ public partial struct getAngularAcceleration : IJobEntity
     [BurstCompile]
     private void Execute(
         in PIDOutputs_Vector pidOutputs,
-        ref Parent parent) {
+        ref Parent parent,
+        in rotPIDTag rotPID) {
         // Retrieve the desired angular acceleration from the PID outputs
-        float3 desiredAngularAcceleration = pidOutputs.angularAcceleration;
+        float3 desiredAngularAcceleration = pidOutputs.VectorResponse;
             if (angularAccelerationLookup.HasComponent(parent.Value))
             {
                 angularAccelerationLookup[parent.Value] = new AngularAcceleration { angularAcceleration = desiredAngularAcceleration };

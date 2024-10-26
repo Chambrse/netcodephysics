@@ -7,6 +7,7 @@ using Unity.Burst;
 public enum MovementModes
 {
     Hover,
+    Hover_Stopping,
     Fly
 }
 
@@ -15,7 +16,7 @@ public struct MovementMode : IComponentData
     public MovementModes mode;
 }
 
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [UpdateAfter(typeof(GetPlayerInputSystem))]
 [BurstCompile]
 public partial struct DetermineMovementModeSystem : ISystem
@@ -47,7 +48,13 @@ public partial struct AssignModeJob : IJobEntity
     [BurstCompile]
     private void Execute(ref MovementMode mode, in CraftInput input)
     {
+        if (input.Brakes > 0)
+        {
+            mode.mode = MovementModes.Hover_Stopping;
+        }else
+        {
             mode.mode = MovementModes.Hover;
+        }
     }
 }
 

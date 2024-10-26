@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using UnityEngine;
 using Unity.Entities.Serialization;
+using Unity.NetCode;
 
 public struct CraftTuning : IComponentData
 {
@@ -11,6 +12,13 @@ public struct CraftTuning : IComponentData
 }
 
 public struct PlayerTag : IComponentData { }
+
+public struct rotPIDTag : IComponentData 
+{
+    
+};
+
+public struct linPIDTag : IComponentData { };
 
 //public struct DebugVizEntityPrefabs : IComponentData
 //{
@@ -43,6 +51,8 @@ public class CraftAuthoring : MonoBehaviour
 
     public float Kd_LIN = 1.0f;
 
+
+
     class Baker : Baker<CraftAuthoring>
     {
         public override void Bake(CraftAuthoring authoring)
@@ -60,32 +70,40 @@ public class CraftAuthoring : MonoBehaviour
             AddComponent<AngularAcceleration>(entity);
             AddComponent<TargetRelativeVelocity>(entity);
             AddComponent<PreviousVelocity>(entity);
-            AddComponent<VerticalAcceleration>(entity);
+            AddComponent<LinearAcceleration>(entity);
 
-            // Create a new entity for the PID controller using CreateAdditionalEntity
             var rotationPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "RotationPID");
-
-            // Add PID components to the new PID entity using Baker API
             AddComponent(rotationPID, new PIDGainSet { Kp = authoring.Kp_ROT, Ki = authoring.Ki_ROT, Kd = authoring.Kd_ROT });  
             AddComponent(rotationPID, new PIDInputs_Vector
             {
-                AngleError = new float3(0, 0, 0),
-                AngularVelocity = new float3(0, 0, 0)
+                VectorError = new float3(0, 0, 0),
+                DeltaVectorError = new float3(0, 0, 0)
             });
-            AddComponent(rotationPID, new PIDOutputs_Vector { angularAcceleration = new Vector3(0, 0, 0) });
-
-            // Set the parent component for the PID entity using Baker API
+            AddComponent(rotationPID, new PIDOutputs_Vector { VectorResponse = new float3(0, 0, 0) });
             AddComponent(rotationPID, new Parent { Value = entity });
+            AddComponent(rotationPID, new rotPIDTag { });
+            AddComponent(rotationPID, new PIDGainFromInput { GainInput = 0f });
 
-            var hoverHeightPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HoverHeightPID");
+            var linearVectorPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "LinearPID");
+            AddComponent(linearVectorPID, new PIDGainSet { Kp = authoring.Kp_LIN, Ki = authoring.Ki_LIN, Kd = authoring.Kd_LIN });
+            AddComponent(linearVectorPID, new PIDInputs_Vector
+            {
+                VectorError = new float3(0, 0, 0),
+                DeltaVectorError = new float3(0, 0, 0)
+            });
+            AddComponent(linearVectorPID, new PIDOutputs_Vector { VectorResponse = new float3(0, 0, 0) });
+            AddComponent(linearVectorPID, new linPIDTag { });
+            AddComponent(linearVectorPID, new PIDGainFromInput { GainInput = 0f });
+            AddComponent(linearVectorPID, new Parent { Value = entity });
 
-            AddComponent(hoverHeightPID, new PIDGainSet { Kp = authoring.Kp_LIN, Ki = authoring.Ki_LIN, Kd = authoring.Kd_LIN });
-            AddComponent(hoverHeightPID, new PIDInputs_Scalar { Error = 0 });
-            AddComponent(hoverHeightPID, new PIDOutputs_Scalar { linearAcceleration = 0 });
+            //var hoverHeightPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HoverHeightPID");
+            //AddComponent(hoverHeightPID, new PIDGainSet { Kp = authoring.Kp_LIN_Height, Ki = authoring.Ki_LIN_Height, Kd = authoring.Kd_LIN_Height });
+            //AddComponent(hoverHeightPID, new PIDInputs_Scalar { Error = 0 });
+            //AddComponent(hoverHeightPID, new PIDOutputs_Scalar { linearAcceleration = 0 });
+            //AddComponent(hoverHeightPID, new Parent { Value = entity });
 
-            AddComponent(hoverHeightPID, new Parent { Value = entity });
-
-
+            //var horizontalPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HorizontalPID");
+            //AddComponent(horizontalPID, new PIDGainSet { Kp = authroing })
 
 
         }

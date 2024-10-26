@@ -3,6 +3,8 @@ using Unity.Collections;
 using Unity.Entities;
 using Unity.NetCode;
 using Unity.Burst;
+using Unity.Mathematics;
+using Unity.Transforms;
 
 /// <summary>
 /// This allows sending RPCs between a stand alone build and the editor for testing purposes in the event when you finish this example
@@ -10,7 +12,7 @@ using Unity.Burst;
 /// </summary>
 [BurstCompile]
 [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation | WorldSystemFilterFlags.ServerSimulation | WorldSystemFilterFlags.ThinClientSimulation)]
-[UpdateInGroup(typeof(InitializationSystemGroup))]
+[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [CreateAfter(typeof(RpcSystem))]
 public partial struct SetRpcSystemDynamicAssemblyListSystem : ISystem
 {
@@ -101,6 +103,19 @@ public partial struct GoInGameServerSystem : ISystem
             var player = commandBuffer.Instantiate(prefab);
             // Associate the instantiated prefab with the connected client's assigned NetworkId
             commandBuffer.SetComponent(player, new GhostOwner { NetworkId = networkId.Value});
+
+            // Calculate spawn position offset based on NetworkId
+            float3 basePosition = new float3(0, 15f, 0); // Base position, can be adjusted
+            float3 spawnOffset = new float3(0, 0, networkId.Value * 20.0f); // Offset players by 5 units on X and Z axes
+
+            // Set the player's position with the calculated offset
+            commandBuffer.SetComponent(player, new LocalTransform
+            {
+                Position = basePosition + spawnOffset,
+                Rotation = quaternion.identity, // Keep default rotation
+                Scale = 1.0f // Default scale, can be changed as needed
+            });
+
 
             // Add the player to the linked entity group so it is destroyed automatically on disconnect
             commandBuffer.AppendToBuffer(reqSrc.ValueRO.SourceConnection, new LinkedEntityGroup{Value = player});
