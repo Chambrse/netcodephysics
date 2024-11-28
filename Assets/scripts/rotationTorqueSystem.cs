@@ -85,29 +85,29 @@ public partial struct ApplyTorqueWithGyroscopicEffectsJob : IJobEntity
         ref PhysicsVelocity physicsVelocity,
         in PhysicsMass physicsMass)
     {
-        //// Retrieve the desired angular acceleration (assumed to be in local space)
-        //float3 desiredAngularAcceleration = craftAngularAcceleration.angularAcceleration;
+        // // Retrieve the desired angular acceleration (assumed to be in local space)
+        // float3 desiredAngularAcceleration = craftAngularAcceleration.angularAcceleration;
 
-        //// Transform the desired angular acceleration to torque using the inertia tensor
-        //// Since physicsMass.InertiaTensor is the inverse, we need to use the reciprocal for the correct operation.
-        //float3 desiredTorque = desiredAngularAcceleration / physicsMass.InverseInertia;
+        // // Transform the desired angular acceleration to torque using the inertia tensor
+        // // Since physicsMass.InertiaTensor is the inverse, we need to use the reciprocal for the correct operation.
+        // float3 desiredTorque = desiredAngularAcceleration / physicsMass.InverseInertia;
 
-        //// Calculate the gyroscopic torque: w x (I * w)
-        //float3 currentAngularVelocity = physicsVelocity.Angular;
-        //float3 inertiaTimesAngularVelocity = currentAngularVelocity / physicsMass.InverseInertia;
-        //float3 gyroscopicTorque = math.cross(currentAngularVelocity, inertiaTimesAngularVelocity);
+        // // Calculate the gyroscopic torque: w x (I * w)
+        // float3 currentAngularVelocity = physicsVelocity.Angular;
+        // float3 inertiaTimesAngularVelocity = currentAngularVelocity / physicsMass.InverseInertia;
+        // float3 gyroscopicTorque = math.cross(currentAngularVelocity, inertiaTimesAngularVelocity);
 
-        //// Calculate the total torque to be applied
-        //float3 totalTorque = desiredTorque + gyroscopicTorque;
+        // // Calculate the total torque to be applied
+        // float3 totalTorque = desiredTorque + gyroscopicTorque;
 
-        //// Apply the torque to calculate the change in angular velocity
-        //float3 angularVelocityChange = totalTorque * DeltaTime;
+        // // Apply the torque to calculate the change in angular velocity
+        // float3 angularVelocityChange = totalTorque * DeltaTime;
 
-        //// Update the angular velocity in the physics system
-        //physicsVelocity.Angular += angularVelocityChange;
+        // // Update the angular velocity in the physics system
+        // physicsVelocity.Angular += angularVelocityChange;
 
 
-        // Retrieve the desired angular acceleration in local space
+                // Retrieve the desired angular acceleration in local space
         float3 desiredAngularAcceleration = craftAngularAcceleration.angularAcceleration;
 
         // Convert the angular acceleration to a change in angular velocity
