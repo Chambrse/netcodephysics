@@ -99,71 +99,98 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         ref TargetRotation targetRotationComponent)
     {
         float yawInput = craftInput.YawVector;
+
+        // 1. Establish the baseline `targetRotation` (yaw only, level with ground)
         Vector3 currentForward = localTransform.Forward();
-
-        // Project current forward onto the xz plane
-        Vector3 currentForwardXZ = new Vector3(currentForward.x, 0, currentForward.z);
-
+        Vector3 currentForwardXZ = new Vector3(currentForward.x, 0, currentForward.z).normalized; // Project onto XZ-plane
         Vector3 yawedForward = Quaternion.AngleAxis(yawInput * tuning.yawSpeed, Vector3.up) * currentForwardXZ;
-        yawedForward.Normalize();  // Make sure it's a unit vector
+        Quaternion targetRotation = Quaternion.LookRotation(yawedForward, Vector3.up); // Yaw rotation only
 
-        // Calculate the target rotation aligned with the world's up vector
-        Quaternion targetRotation = Quaternion.LookRotation(yawedForward, Vector3.up);
+        float tiltAngleX = 0f;
+        float tiltAngleZ = 0f;
+        float tiltAngleY = 0f;
+        float maxTiltAngle = 85f;
+        Vector3 eulerTilt = Vector3.zero;
+        Quaternion tiltRotation;
 
-        float tiltAngleX;
-        float tiltAngleY;
-        float tiltAngleZ;
-
-        float maxTiltAngle = 85;
-        Vector3 eulerTilt;
         if (movementMode.mode == MovementModes.Hover_Stopping)
         {
-            //do stuff with the output of the pid controller component that is a child of the entities returned by this query and has tag linPIDTag
-            float3 linAcceleration = linearAcceleration.localLinearAcceleration;
-            float3 linAccelerationWithGravityFeedForward = linAcceleration + new float3(0, 9.81f, 0);
+            // 2. Tilt calculation based on desired acceleration
+            float3 linAcceleration = linearAcceleration.linearAcceleration;
 
-            float3 linAccelerationNorm = math.normalize(linAccelerationWithGravityFeedForward);
+            // Account for gravity in local coordinates
+            float3 gravityGlobal = new float3(0, 9.81f, 0);
 
-            //var tiltAngleXRad = math.acos((linAccelerationNorm.y) / math.sqrt(math.pow(linAccelerationNorm.x, 2) + math.pow(linAccelerationNorm.y, 2)));
-            //var tiltAngleZRad = math.acos((linAccelerationNorm.y) / math.sqrt(math.pow(linAccelerationNorm.z, 2) + math.pow(linAccelerationNorm.y, 2)));
-            var tiltAngleXRad = math.atan(linAccelerationNorm.x / (linAccelerationNorm.y));
-            var tiltAngleZRad = math.atan(linAccelerationNorm.z / (linAccelerationNorm.y));
+            float3 linAccWithGravity = linAcceleration + gravityGlobal;
+
+            float3 tiltXZPlane = new float3(linAccWithGravity.x, 0, linAccWithGravity.z);
+
+            // Calculate the XZ-plane magnitude while retaining the full vector's scale
+            float tiltXZMagnitude = math.sqrt(linAccWithGravity.x * linAccWithGravity.x + linAccWithGravity.z * linAccWithGravity.z);
+
+            // Avoid dividing by zero; ensure Y is part of the relative scale
+            float effectiveY = math.max(math.abs(linAccWithGravity.y), 0.0001f); // Stabilize Y if near zero
+
+            // Scale X and Z to reflect their proportion relative to gravity (Y)
+            float tiltAngleXRad = math.asin(math.clamp(linAccWithGravity.x / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
+            float tiltAngleZRad = math.asin(math.clamp(linAccWithGravity.z / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
+
+
             tiltAngleX = math.degrees(tiltAngleXRad);
             tiltAngleZ = math.degrees(tiltAngleZRad);
-            eulerTilt = new Vector3(tiltAngleZ, 0, -tiltAngleX);
+
+            // Combine pitch and roll into Euler angles
+            float3 globalTiltVector = new Vector3(tiltAngleZ, 0, -tiltAngleX); // Z for roll, X for pitch
+
+            // Adjust the tilt for the local frame by applying a "spin" around the global Y-axis
+            float3 forwardLocal = math.forward(localTransform.Rotation); // Craft's forward direction in global
+            float yawAngleRad = math.atan2(forwardLocal.x, forwardLocal.z); // Craft's yaw relative to global forward
+
+            // Create the rotation matrix for spinning around the Y-axis
+            float sinYaw = math.sin(-yawAngleRad);
+            float cosYaw = math.cos(-yawAngleRad);
+            float3x3 spinMatrix = new float3x3(
+                new float3(cosYaw, 0, -sinYaw), // First row
+                new float3(0, 1, 0),            // Second row (Y-axis unchanged)
+                new float3(sinYaw, 0, cosYaw)   // Third row
+            );
+
+            // Rotate the tilt vector around the global Y-axis by the yaw angle
+            float3 localTiltVector = math.mul(spinMatrix, globalTiltVector);
+
+            // Reconstruct Euler angles for tilt in the local frame
+            eulerTilt = new Vector3(localTiltVector.x, 0, localTiltVector.z);
 
         }
         else
         {
-            tiltAngleX = craftInput.Move.x * maxTiltAngle;
-            tiltAngleY = craftInput.Move.y * maxTiltAngle;
-        eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
-
+            // 3. Handle non-hover modes
+            tiltAngleX = craftInput.Move.x * maxTiltAngle; // Input-based tilting
+            tiltAngleY = craftInput.Move.y * maxTiltAngle; // Add yaw if needed
+            eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
         }
 
-        // Create quaternion rotation from Euler angles
-        Quaternion tiltRotation = Quaternion.Euler(eulerTilt);
-
-        // Combine target yaw rotation and tilt
+            tiltRotation = Quaternion.Euler(eulerTilt);
+        // 4. Combine yaw and tilt into the final target rotation
         Quaternion finalTargetRotationQuaternion = targetRotation * tiltRotation;
+
+        // 5. Update the TargetRotation component
         targetRotationComponent.Value = finalTargetRotationQuaternion;
 
-        // Calculate the delta rotation (difference between current and target)
+        // 6. Calculate the delta rotation (error) for stabilization
         quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
 
-
-        //quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
-        //float3 axis;
-        //float angle;
-        //math.toAxisAngle(deltaRotation, out axis, out angle);
-
-        // Extract the axis-angle representation of the delta rotation
+        // Extract axis-angle safely (with dead zone for small angles)
         float angle;
         float3 axis;
         ToAxisAngleSafe(deltaRotation, out axis, out angle);
 
-        // Calculate the rotation error based on the angle and axis
+        // Apply dead zone to prevent jitter for very small errors
+        if (math.abs(angle) < 0.01f) angle = 0f;
+
+        // Update rotation error
         targetRotationComponent.targetRotationError = axis * angle;
+
 
     }
 
