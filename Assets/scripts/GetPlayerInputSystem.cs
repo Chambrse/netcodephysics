@@ -13,6 +13,8 @@ public struct CraftInput : IInputComponentData
 
     public float Brakes;
 
+    public HoverMode_Player hoverMode;
+
 }
 
 //client only
@@ -23,13 +25,18 @@ public partial class GetPlayerInputSystem : SystemBase
     private PlayerControls _playerControls;
     private MenuController _menuController;
 
+    private bool _changeHoverMode = false;
+
     protected override void OnCreate()
     {
         RequireForUpdate<CraftInput>();
+        RequireForUpdate<MovementMode>();
 
         // Initialize PlayerControls
         _playerControls = new PlayerControls();
         _playerControls.Enable();
+
+        _playerControls.Hover.Mode.performed += ctx => onModeChange(ctx);
 
         GameObject menuControllerPrefab = Resources.Load<GameObject>("prefabs/MenuController");
         GameObject menuControllerObject = Object.Instantiate(menuControllerPrefab);
@@ -41,40 +48,41 @@ public partial class GetPlayerInputSystem : SystemBase
         _menuController.Initialize(_playerControls);
     }
 
+    private void onModeChange(InputAction.CallbackContext ctx)
+    {
+
+            // swap hover mode
+            _changeHoverMode = true;
+        
+    }
+
     protected override void OnUpdate()
     {
         var curMoveInput = _playerControls.Hover.Move.ReadValue<Vector2>();
         var curYawInput = _playerControls.Hover.YawVector.ReadValue<float>();
         var Brakes = _playerControls.Hover.Brakes.ReadValue<float>();
 
-        foreach (var craftInput in SystemAPI.Query<RefRW<CraftInput>>().WithAll<PlayerTag>())
+        foreach (var (craftInput, movementMode) in SystemAPI.Query<RefRW<CraftInput>, RefRW<MovementMode>>().WithAll<PlayerTag>())
         {
+
+            var currentPlayerMovementMode = craftInput.ValueRW.hoverMode;
+
+            var swapHovermode = (currentPlayerMovementMode == HoverMode_Player.VTOL ? HoverMode_Player.Locked : HoverMode_Player.VTOL);
+
+
             craftInput.ValueRW = new CraftInput
             {
                 Move = curMoveInput,
                 YawVector = curYawInput,
                 Thrust = _playerControls.Hover.Thrust.ReadValue<float>(),
-                Brakes = Brakes
+                Brakes = Brakes,
+                hoverMode = _changeHoverMode ? swapHovermode : currentPlayerMovementMode
             };
+
         }
 
 
-
-        foreach (var inputGain in SystemAPI.Query<RefRW<PIDGainFromInput>>().WithAll<linPIDTag>())
-        {
-            //gains.ValueRW = new PIDGainSet
-            //{
-            //    Kp = 1 + (Brakes * 10),
-            //    Ki = 0,
-            //    Kd = 1 + (Brakes * 10),
-
-            //};
-
-            inputGain.ValueRW = new PIDGainFromInput
-            {
-                GainInput = Brakes
-            };
-        }
+        _changeHoverMode = false;
     }
 
     protected override void OnDestroy()

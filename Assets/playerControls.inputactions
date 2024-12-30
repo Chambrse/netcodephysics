@@ -15,7 +15,7 @@
                     "initialStateCheck": true
                 },
                 {
-                    "name": "Stop",
+                    "name": "Mode",
                     "type": "Button",
                     "id": "5bb3622d-e55d-4695-9a6d-fbac2bd73950",
                     "expectedControlType": "Button",
@@ -170,7 +170,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Stop",
+                    "action": "Mode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },
@@ -181,7 +181,7 @@
                     "interactions": "",
                     "processors": "",
                     "groups": "",
-                    "action": "Stop",
+                    "action": "Mode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 },

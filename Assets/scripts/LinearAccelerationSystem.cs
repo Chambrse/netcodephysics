@@ -82,6 +82,7 @@ public partial struct ApplyHoverForce : IJobEntity
         ref PhysicsVelocity physicsVelocity,
         in PhysicsMass physicsMass,
         in LocalTransform localTransform,
+        in MovementMode movementMode,
         in CraftInput craftInput)
     {
 
@@ -95,12 +96,19 @@ public partial struct ApplyHoverForce : IJobEntity
 
         // Rotate worldUp vector into the entity's local space using the rotation quaternion
         float3 localUp = math.mul(rotation, worldUp);
+        float totalVerticalAcceleration = 0;
+        if (movementMode.mode == MovementModes.VTOL)
+        {
+            // physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100)) * DeltaTime;
 
-
-        float totalVerticalAcceleration = linearAcceleration.linearAcceleration.y
-            + 9.81f
-            + (craftInput.Thrust * 100);
-
+            totalVerticalAcceleration = linearAcceleration.linearAcceleration.y
+                + (9.81f * craftInput.Brakes)
+                + (craftInput.Thrust * 100);
+        } else
+        {
+            totalVerticalAcceleration = linearAcceleration.linearAcceleration.y + 9.81f;
+        }
+    
         float localAccelerationMagnitude = totalVerticalAcceleration / math.dot(localUp, worldUp);
 
         //verticalAcceleration.localVerticalAcceleration = localAccelerationMagnitude;

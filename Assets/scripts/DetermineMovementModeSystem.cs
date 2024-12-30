@@ -8,7 +8,14 @@ public enum MovementModes
 {
     Hover,
     Hover_Stopping,
-    Fly
+    Fly,
+    VTOL
+}
+
+public enum HoverMode_Player
+{
+    VTOL,
+    Locked
 }
 
 public struct MovementMode : IComponentData
@@ -48,13 +55,21 @@ public partial struct AssignModeJob : IJobEntity
     [BurstCompile]
     private void Execute(ref MovementMode mode, in CraftInput input)
     {
-        if (input.Brakes > 0)
+        if (input.hoverMode == HoverMode_Player.VTOL)
         {
-            mode.mode = MovementModes.Hover_Stopping;
-        }else
+            mode.mode = MovementModes.VTOL;
+        } else
         {
-            mode.mode = MovementModes.Hover;
+            if (input.Brakes > 0)
+            {
+                mode.mode = MovementModes.Hover_Stopping;
+            }
+            else
+            {
+                mode.mode = MovementModes.Hover;
+            }
         }
     }
 }
+
 

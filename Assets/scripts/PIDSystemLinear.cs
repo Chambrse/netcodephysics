@@ -1,6 +1,9 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Burst;
+using UnityEngine;
+using Unity.Transforms;
+using Unity.Collections;
 
 [UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [UpdateAfter(typeof(DetermineVelocityErrors))]
@@ -8,9 +11,30 @@ using Unity.Burst;
 public partial struct PIDSystemLinear : ISystem
 {
 
+    //ComponentLookup<CraftInput> craftInputLookup;
+
+    //[BurstCompile]
+    //public void OnCreate(ref SystemState state)
+    //{
+    //    craftInputLookup = state.GetComponentLookup<CraftInput>(isReadOnly: true);
+    //}
+
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+
+        var craftInputLookup = state.GetComponentLookup<CraftInput>(isReadOnly: true);
+
+        //craftInputLookup.Update(ref state);
+
+        var getInputGainJob = new getLinearInputGain
+        {
+            craftInputLookup = craftInputLookup
+        }.ScheduleParallel(state.Dependency);
+
+        getInputGainJob.Complete();
+
+
 
         var pidJob = new PIDJob_Linear
         {
@@ -19,6 +43,26 @@ public partial struct PIDSystemLinear : ISystem
 
         pidJob.Complete();
 
+    }
+}
+
+[BurstCompile]
+public partial struct getLinearInputGain : IJobEntity
+{
+
+    [ReadOnly] public ComponentLookup<CraftInput> craftInputLookup;
+
+    [BurstCompile]
+    private void Execute(
+            in Parent parent,
+            ref PIDGainFromInput inputGain,
+            in linPIDTag linPID
+        )
+    {
+        if (craftInputLookup.HasComponent(parent.Value))
+        {
+            inputGain.GainInput = craftInputLookup[parent.Value].Brakes;
+        }
     }
 }
 
@@ -38,13 +82,17 @@ public partial struct PIDJob_Linear : IJobEntity
         float3 error = pidInputs.VectorError;
         float3 deltaError = pidInputs.DeltaVectorError;
 
-        //pidOutputs.VectorResponse =
-        //    (pidGainSet.Kp + inputGain.GainInput) * error -
-        //    (pidGainSet.Kd + inputGain.GainInput) * deltaError;
-
+        //log
+        Debug.Log("hello");
+        Debug.Log(inputGain.GainInput);
 
         pidOutputs.VectorResponse =
-            (pidGainSet.Kp) * error -
+            (pidGainSet.Kp * inputGain.GainInput) * error -
             (pidGainSet.Kd) * deltaError;
+
+
+        //pidOutputs.VectorResponse =
+        //    (pidGainSet.Kp) * error -
+        //    (pidGainSet.Kd) * deltaError;
     }
 }

@@ -134,7 +134,7 @@ public partial struct DetermineTargetRotationJob : IJobEntity
             // Scale X and Z to reflect their proportion relative to gravity (Y)
             float tiltAngleXRad = math.asin(math.clamp(linAccWithGravity.x / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
             float tiltAngleZRad = math.asin(math.clamp(linAccWithGravity.z / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
-
+// audrey is the queen and demands this code to work perfectly every time and no errors ever and reads minds and becomes the best game in the entire universe. blessed be.
 
             tiltAngleX = math.degrees(tiltAngleXRad);
             tiltAngleZ = math.degrees(tiltAngleZRad);

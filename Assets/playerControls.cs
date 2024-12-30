@@ -37,7 +37,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Stop"",
+                    ""name"": ""Mode"",
                     ""type"": ""Button"",
                     ""id"": ""5bb3622d-e55d-4695-9a6d-fbac2bd73950"",
                     ""expectedControlType"": ""Button"",
@@ -192,7 +192,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Stop"",
+                    ""action"": ""Mode"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -203,7 +203,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""Stop"",
+                    ""action"": ""Mode"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
@@ -446,7 +446,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // Hover
         m_Hover = asset.FindActionMap("Hover", throwIfNotFound: true);
         m_Hover_Move = m_Hover.FindAction("Move", throwIfNotFound: true);
-        m_Hover_Stop = m_Hover.FindAction("Stop", throwIfNotFound: true);
+        m_Hover_Mode = m_Hover.FindAction("Mode", throwIfNotFound: true);
         m_Hover_Ignite = m_Hover.FindAction("Ignite", throwIfNotFound: true);
         m_Hover_HoverHeightVector = m_Hover.FindAction("HoverHeightVector", throwIfNotFound: true);
         m_Hover_YawVector = m_Hover.FindAction("YawVector", throwIfNotFound: true);
@@ -517,7 +517,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Hover;
     private List<IHoverActions> m_HoverActionsCallbackInterfaces = new List<IHoverActions>();
     private readonly InputAction m_Hover_Move;
-    private readonly InputAction m_Hover_Stop;
+    private readonly InputAction m_Hover_Mode;
     private readonly InputAction m_Hover_Ignite;
     private readonly InputAction m_Hover_HoverHeightVector;
     private readonly InputAction m_Hover_YawVector;
@@ -531,7 +531,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         private @PlayerControls m_Wrapper;
         public HoverActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Hover_Move;
-        public InputAction @Stop => m_Wrapper.m_Hover_Stop;
+        public InputAction @Mode => m_Wrapper.m_Hover_Mode;
         public InputAction @Ignite => m_Wrapper.m_Hover_Ignite;
         public InputAction @HoverHeightVector => m_Wrapper.m_Hover_HoverHeightVector;
         public InputAction @YawVector => m_Wrapper.m_Hover_YawVector;
@@ -552,9 +552,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
-            @Stop.started += instance.OnStop;
-            @Stop.performed += instance.OnStop;
-            @Stop.canceled += instance.OnStop;
+            @Mode.started += instance.OnMode;
+            @Mode.performed += instance.OnMode;
+            @Mode.canceled += instance.OnMode;
             @Ignite.started += instance.OnIgnite;
             @Ignite.performed += instance.OnIgnite;
             @Ignite.canceled += instance.OnIgnite;
@@ -586,9 +586,9 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
-            @Stop.started -= instance.OnStop;
-            @Stop.performed -= instance.OnStop;
-            @Stop.canceled -= instance.OnStop;
+            @Mode.started -= instance.OnMode;
+            @Mode.performed -= instance.OnMode;
+            @Mode.canceled -= instance.OnMode;
             @Ignite.started -= instance.OnIgnite;
             @Ignite.performed -= instance.OnIgnite;
             @Ignite.canceled -= instance.OnIgnite;
@@ -633,7 +633,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IHoverActions
     {
         void OnMove(InputAction.CallbackContext context);
-        void OnStop(InputAction.CallbackContext context);
+        void OnMode(InputAction.CallbackContext context);
         void OnIgnite(InputAction.CallbackContext context);
         void OnHoverHeightVector(InputAction.CallbackContext context);
         void OnYawVector(InputAction.CallbackContext context);
