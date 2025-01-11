@@ -52,7 +52,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8acdb699a8353f044a2e08ef99d9fd79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  yawspeed: 100
+  yawspeed: 50
   pitchSpeed: 1
   Kp_ROT: 20
   Ki_ROT: 0

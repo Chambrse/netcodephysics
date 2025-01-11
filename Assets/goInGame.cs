@@ -112,7 +112,7 @@ public partial struct GoInGameServerSystem : ISystem
             commandBuffer.SetComponent(player, new LocalTransform
             {
                 Position = basePosition + spawnOffset,
-                Rotation = quaternion.identity, // Keep default rotation
+                Rotation = quaternion.AxisAngle(math.up(), math.radians(100)), // Keep default rotation
                 Scale = 1.0f // Default scale, can be changed as needed
             });
 

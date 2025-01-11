@@ -5,7 +5,7 @@ using Unity.Transforms;
 using Unity.Burst;
 using UnityEngine;
 using Unity.Physics;
-using JetBrains.Annotations;
+using UnityEngine.SocialPlatforms;
 
 public struct PhysicsProperties : IComponentData
 {
@@ -32,7 +32,7 @@ public partial struct DetermineRotationErrors : ISystem
     public void OnUpdate(ref SystemState state)
     {
         var linearAccelerationLookup = state.GetComponentLookup<LinearAcceleration>();
-        var localTransformLookup = state.GetComponentLookup<LocalTransform>();  
+        var localTransformLookup = state.GetComponentLookup<LocalTransform>();
 
         // First job: getAngularAcceleration using ComponentLookup instead of EntityManager
         var getLinearAccelerationJob = new getVerticalAcceleration
@@ -98,87 +98,81 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         in LinearAcceleration linearAcceleration,
         ref TargetRotation targetRotationComponent)
     {
-        float yawInput = craftInput.YawVector;
-
-        // 1. Establish the baseline `targetRotation` (yaw only, level with ground)
-        Vector3 currentForward = localTransform.Forward();
-        Vector3 currentForwardXZ = new Vector3(currentForward.x, 0, currentForward.z).normalized; // Project onto XZ-plane
-        Vector3 yawedForward = Quaternion.AngleAxis(yawInput * tuning.yawSpeed, Vector3.up) * currentForwardXZ;
-        Quaternion targetRotation = Quaternion.LookRotation(yawedForward, Vector3.up); // Yaw rotation only
-
-        float tiltAngleX = 0f;
-        float tiltAngleZ = 0f;
-        float tiltAngleY = 0f;
         float maxTiltAngle = 85f;
-        Vector3 eulerTilt = Vector3.zero;
-        Quaternion tiltRotation;
 
+        quaternion desiredRotationLocal;
+        quaternion desiredRotationWithYawInput;
         if (movementMode.mode == MovementModes.Hover_Stopping)
         {
-            // 2. Tilt calculation based on desired acceleration
-            float3 linAcceleration = linearAcceleration.linearAcceleration;
+            //get desired local acceleration (only xz component considered)
+            float3 linAccelerationLocal = linearAcceleration.localLinearAcceleration;
+            //add gravity so we can get the angle that will counteract our current velocity and gravity at the same time.
+            float3 gravityGlobal = new float3(0, 9.81f, 0); // Gravity in global space
+            float3 gravityLocal = math.rotate(math.conjugate(localTransform.Rotation), gravityGlobal); // Transform gravity into local space
+            float3 linAccWithGravity_Local = linAccelerationLocal + gravityLocal;
 
-            // Account for gravity in local coordinates
-            float3 gravityGlobal = new float3(0, 9.81f, 0);
+            // Calculate tilt angles in radians
+            float tiltAngleXRad = math.atan2(-linAccWithGravity_Local.x, linAccWithGravity_Local.y); 
+            float tiltAngleZRad = math.atan2(linAccWithGravity_Local.z, linAccWithGravity_Local.y);
+            float3 localTiltVector = new float3(tiltAngleZRad, 0, tiltAngleXRad); // Z for roll, X for pitch
+            quaternion desiredTiltLocal = quaternion.Euler(localTiltVector);
+            desiredRotationLocal = math.mul(localTransform.Rotation, desiredTiltLocal);
 
-            float3 linAccWithGravity = linAcceleration + gravityGlobal;
 
-            float3 tiltXZPlane = new float3(linAccWithGravity.x, 0, linAccWithGravity.z);
+            //now add in the yaw input
+            //further manipulations need to use the already calculated desiredrotationglobal as a starting point
+            float3 desiredForward = math.forward(desiredRotationLocal); // Forward direction from desired rotation
+            float3 desiredUp = math.rotate(desiredRotationLocal, math.up()); // Up direction derived from desired rotation
 
-            // Calculate the XZ-plane magnitude while retaining the full vector's scale
-            float tiltXZMagnitude = math.sqrt(linAccWithGravity.x * linAccWithGravity.x + linAccWithGravity.z * linAccWithGravity.z);
+            float yawInput = math.radians(craftInput.YawVector * tuning.yawSpeed); // Convert yaw input to radians
+            quaternion yawSpin = quaternion.AxisAngle(desiredUp, yawInput); // Yaw around the desired up axis
 
-            // Avoid dividing by zero; ensure Y is part of the relative scale
-            float effectiveY = math.max(math.abs(linAccWithGravity.y), 0.0001f); // Stabilize Y if near zero
+            // Step 3: Apply the yaw spin to the forward direction of the desired rotation
+            float3 newForward = math.rotate(yawSpin, desiredForward); // Rotate the forward vector using the yaw input
 
-            // Scale X and Z to reflect their proportion relative to gravity (Y)
-            float tiltAngleXRad = math.asin(math.clamp(linAccWithGravity.x / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
-            float tiltAngleZRad = math.asin(math.clamp(linAccWithGravity.z / math.sqrt(tiltXZMagnitude * tiltXZMagnitude + effectiveY * effectiveY), -1f, 1f));
-// audrey is the queen and demands this code to work perfectly every time and no errors ever and reads minds and becomes the best game in the entire universe. blessed be.
-
-            tiltAngleX = math.degrees(tiltAngleXRad);
-            tiltAngleZ = math.degrees(tiltAngleZRad);
-
-            // Combine pitch and roll into Euler angles
-            float3 globalTiltVector = new Vector3(tiltAngleZ, 0, -tiltAngleX); // Z for roll, X for pitch
-
-            // Adjust the tilt for the local frame by applying a "spin" around the global Y-axis
-            float3 forwardLocal = math.forward(localTransform.Rotation); // Craft's forward direction in global
-            float yawAngleRad = math.atan2(forwardLocal.x, forwardLocal.z); // Craft's yaw relative to global forward
-
-            // Create the rotation matrix for spinning around the Y-axis
-            float sinYaw = math.sin(-yawAngleRad);
-            float cosYaw = math.cos(-yawAngleRad);
-            float3x3 spinMatrix = new float3x3(
-                new float3(cosYaw, 0, -sinYaw), // First row
-                new float3(0, 1, 0),            // Second row (Y-axis unchanged)
-                new float3(sinYaw, 0, cosYaw)   // Third row
-            );
-
-            // Rotate the tilt vector around the global Y-axis by the yaw angle
-            float3 localTiltVector = math.mul(spinMatrix, globalTiltVector);
-
-            // Reconstruct Euler angles for tilt in the local frame
-            eulerTilt = new Vector3(localTiltVector.x, 0, localTiltVector.z);
+            // Step 4: Create the final spin rotation using LookRotationSafe
+            desiredRotationWithYawInput = quaternion.LookRotationSafe(newForward, desiredUp); // Align forward and up
 
         }
         else
         {
-            // 3. Handle non-hover modes
-            tiltAngleX = craftInput.Move.x * maxTiltAngle; // Input-based tilting
-            tiltAngleY = craftInput.Move.y * maxTiltAngle; // Add yaw if needed
-            eulerTilt = new Vector3(tiltAngleY, 0, -tiltAngleX);
+            // Get input and define tilt angle - since the orientation of the game object is not yet considered, 
+            // and the resulting quaternion desiredTiltGlobal should be conceptualized as a global rotation from identity - not useful yet
+            float tiltAngleX = math.radians(craftInput.Move.x * maxTiltAngle); // Input-based tilting
+            float tiltAngleY = math.radians(craftInput.Move.y * maxTiltAngle); // Add yaw if needed
+            quaternion desiredTiltLocal = quaternion.Euler(new Vector3(tiltAngleY, 0, -tiltAngleX));
+
+            // Step 1: Get current forward direction
+            Vector3 currentForward = localTransform.Forward();
+
+            // Step 2: Project forward onto the XZ plane
+            Vector3 currentForwardXZ = new Vector3(currentForward.x, 0, currentForward.z).normalized;
+
+            // Step 3: Add yaw input to the spin quaternion
+            float yawInput = math.radians(craftInput.YawVector * tuning.yawSpeed); // Convert yaw input to radians
+            quaternion yawSpin = quaternion.AxisAngle(math.up(), yawInput); // Yaw rotation around global up
+            quaternion forwardSpin = quaternion.LookRotationSafe(currentForwardXZ, math.up()); // Spin based on projected forward
+            quaternion spin = math.mul(yawSpin, forwardSpin); // Combine yaw and forward alignment
+
+            // Step 4: Apply the combined spin to the desired tilt in local space
+            desiredRotationLocal = math.mul(spin, desiredTiltLocal);
+
+   
+
+            //quaternion localRotation = math.mul(math.conjugate(localTransform.Rotation), yawedRotationGlobal);
+
+            desiredRotationWithYawInput = desiredRotationLocal;
         }
 
-            tiltRotation = Quaternion.Euler(eulerTilt);
-        // 4. Combine yaw and tilt into the final target rotation
-        Quaternion finalTargetRotationQuaternion = targetRotation * tiltRotation;
+
+
+
 
         // 5. Update the TargetRotation component
-        targetRotationComponent.Value = finalTargetRotationQuaternion;
+        targetRotationComponent.Value = desiredRotationWithYawInput;
 
         // 6. Calculate the delta rotation (error) for stabilization
-        quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), finalTargetRotationQuaternion);
+        quaternion deltaRotation = math.mul(math.conjugate(localTransform.Rotation), desiredRotationWithYawInput);
 
         // Extract axis-angle safely (with dead zone for small angles)
         float angle;

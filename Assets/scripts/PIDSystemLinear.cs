@@ -84,7 +84,7 @@ public partial struct PIDJob_Linear : IJobEntity
 
         //log
         Debug.Log("hello");
-        Debug.Log(inputGain.GainInput);
+        //Debug.Log(inputGain.GainInput);
 
         pidOutputs.VectorResponse =
             (pidGainSet.Kp * inputGain.GainInput) * error -

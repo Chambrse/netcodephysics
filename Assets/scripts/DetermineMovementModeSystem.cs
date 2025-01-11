@@ -57,6 +57,7 @@ public partial struct AssignModeJob : IJobEntity
     {
         if (input.hoverMode == HoverMode_Player.VTOL)
         {
+
             mode.mode = MovementModes.VTOL;
         } else
         {
