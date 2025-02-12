@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Transforms;
 using Unity.Mathematics;
 using System.Net;
+using Unity.NetCode;
 
 //debugsettings icomponentdata
 public struct DebugSettings : IComponentData
@@ -52,7 +53,7 @@ public partial struct DebugVizSystem : ISystem
         debugSettingsQuery.Dispose();
 
         state.RequireForUpdate<DebugSettings>();
-        state.RequireForUpdate<PlayerTag>();
+        //state.RequireForUpdate<PlayerTag>();
 
         //entitymanager
 
@@ -68,6 +69,9 @@ public partial struct DebugVizSystem : ISystem
             .WithAll<RotationViz>()
             .WithEntityAccess())
         {
+
+            if (!state.EntityManager.HasComponent<GhostOwnerIsLocal>(parent.ValueRO.Value)) continue;
+
             // Enable or disable based on DebugSettings
             if (_debugSettings.ShowTargetRotation)
             {
@@ -126,6 +130,7 @@ public partial struct DebugVizSystem : ISystem
             //    state.EntityManager.RemoveComponent<Disabled>(VectorViz);
             //}
 
+            if (!state.EntityManager.HasComponent<GhostOwnerIsLocal>(parent.ValueRO.Value)) continue;
 
 
             Entity playerEntity = parent.ValueRO.Value;

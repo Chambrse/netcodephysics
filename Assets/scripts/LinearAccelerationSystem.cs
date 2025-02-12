@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Physics;
 using Unity.Burst;
 using Unity.Transforms;
-
+using UnityEngine;
 public struct VerticalAcceleration : IComponentData
 {
     public float verticalAcceleration;
@@ -14,10 +14,11 @@ public struct LinearAcceleration : IComponentData
 {
     public float3 linearAcceleration;
     public float3 localLinearAcceleration;
+    public float3 totalLocalLinearAcceleration;
 }
 
 [UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
-[UpdateAfter(typeof(PIDSystem))]
+[UpdateAfter(typeof(RotationTorqueSystem))]
 [BurstCompile]
 public partial struct LinearAccelerationSystem : ISystem
 {
@@ -41,24 +42,6 @@ public partial struct LinearAccelerationSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
-
-        // physicsWorldLookup.Update(ref state);
-
-        // Debug.Log("LinearAccelerationSystem OnUpdate");
-        // Initialize ComponentLookup for angular acceleration
-        // var angularAccelerationLookup = state.GetComponentLookup<AngularAcceleration>();
-        //var linearAccelerationLookup = state.GetComponentLookup<LinearAcceleration>();
-
-        //// First job: getAngularAcceleration using ComponentLookup instead of EntityManager
-        //var getLinearAccelerationJob = new getVerticalAcceleration
-        //{
-        //    // angularAccelerationLookup = angularAccelerationLookup
-        //    linearAccelerationLookup = linearAccelerationLookup
-        //};
-
-        //state.Dependency = getLinearAccelerationJob.Schedule(state.Dependency);
-
-
         var job = new ApplyHoverForce
         {
             DeltaTime = SystemAPI.Time.DeltaTime
@@ -70,12 +53,12 @@ public partial struct LinearAccelerationSystem : ISystem
 
 
 
-[BurstCompile]
+//[BurstCompile]
 public partial struct ApplyHoverForce : IJobEntity
 {
     public float DeltaTime;
 
-    [BurstCompile]
+    //[BurstCompile]
     private void Execute(
         //ref VerticalAcceleration verticalAcceleration,
         ref LinearAcceleration linearAcceleration,
@@ -83,39 +66,46 @@ public partial struct ApplyHoverForce : IJobEntity
         in PhysicsMass physicsMass,
         in LocalTransform localTransform,
         in MovementMode movementMode,
-        in CraftInput craftInput)
+        in CraftInput craftInput,
+        in CraftTuning craftTuning)
     {
 
         // get rotation
-        //quaternion rotation = physicsMass.Transform.rot;
         quaternion rotation = localTransform.Rotation;
-        //quaternion rotaion = localTransform.Rotation;
 
         // Define the world +y direction as a vector
         float3 worldUp = new float3(0, 1, 0);
 
         // Rotate worldUp vector into the entity's local space using the rotation quaternion
-        float3 localUp = math.mul(rotation, worldUp);
-        float totalVerticalAcceleration = 0;
-        if (movementMode.mode == MovementModes.VTOL)
-        {
-            // physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100)) * DeltaTime;
+        float3 globalUp = math.mul(rotation, worldUp);
+        float3 globalForward = math.mul(rotation, new float3(0, 0, 1));
 
+        float totalVerticalAcceleration = 0;
+        float totalRearAcceleration = 0;
+        if (movementMode.hoverMode == HoverMode_Player.VTOL)
+        {
             totalVerticalAcceleration = linearAcceleration.linearAcceleration.y
-                + (9.81f * craftInput.Brakes)
-                + (craftInput.Thrust * 100);
-        } else
+                + (50f * craftInput.Brakes);
+
+            totalRearAcceleration += craftInput.Thrust * craftTuning.maxThrust;
+        } else if (movementMode.mode == MovementModes.Hover || movementMode.mode == MovementModes.Hover_Stopping)
         {
             totalVerticalAcceleration = linearAcceleration.linearAcceleration.y + 9.81f;
+        } else if (movementMode.mode == MovementModes.Fly)
+        {
+            totalRearAcceleration += craftInput.Thrust * craftTuning.maxThrust;
         }
     
-        float localAccelerationMagnitude = totalVerticalAcceleration / math.dot(localUp, worldUp);
+        float localVerticalAccelerationMagnitude = totalVerticalAcceleration / math.dot(globalUp, worldUp);
 
-        //verticalAcceleration.localVerticalAcceleration = localAccelerationMagnitude;
-        //linearAcceleration.localLinearAcceleration = localAccelerationMagnitude;
+        // Calculate total acceleration vector in world space
+        float3 totalAcceleration =
+            (globalUp * localVerticalAccelerationMagnitude) + (globalForward * totalRearAcceleration);
 
+        float3 localTotalAcceleration= math.mul(math.inverse(localTransform.Rotation), totalAcceleration);
 
-        // physicsVelocity.Linear.y += (verticalAcceleration.verticalAcceleration + 9.81f + (craftInput.Thrust * 100)) * DeltaTime;
-        physicsVelocity.Linear += localUp * (localAccelerationMagnitude * DeltaTime);
+        linearAcceleration.totalLocalLinearAcceleration = localTotalAcceleration;
+        // Apply total acceleration to physics velocity
+        physicsVelocity.Linear += totalAcceleration * DeltaTime; 
     }
 }

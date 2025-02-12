@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.NetCode;
 using Unity.Transforms;
 using Unity.Burst;
+using Unity.Physics;
 
 public enum MovementModes
 {
@@ -18,14 +19,14 @@ public enum HoverMode_Player
     Locked
 }
 
-public struct MovementMode : IComponentData
+public struct MovementMode : IInputComponentData
 {
     public MovementModes mode;
+    public HoverMode_Player hoverMode;
 }
 
 [UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
 [UpdateAfter(typeof(GetPlayerInputSystem))]
-[BurstCompile]
 public partial struct DetermineMovementModeSystem : ISystem
 {
 
@@ -55,11 +56,19 @@ public partial struct AssignModeJob : IJobEntity
     [BurstCompile]
     private void Execute(ref MovementMode mode, in CraftInput input)
     {
-        if (input.hoverMode == HoverMode_Player.VTOL)
+        if (mode.hoverMode == HoverMode_Player.VTOL)
         {
-
-            mode.mode = MovementModes.VTOL;
-        } else
+            // Check if the forward velocity exceeds the threshold
+            if (input.Thrust > math.EPSILON) // Use abs if direction doesn't matter
+            {
+                mode.mode = MovementModes.Fly;
+            }
+            else
+            {
+                mode.mode = MovementModes.VTOL;
+            }
+        }
+        else
         {
             if (input.Brakes > 0)
             {

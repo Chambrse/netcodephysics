@@ -103,6 +103,7 @@ public partial struct GoInGameServerSystem : ISystem
             var player = commandBuffer.Instantiate(prefab);
             // Associate the instantiated prefab with the connected client's assigned NetworkId
             commandBuffer.SetComponent(player, new GhostOwner { NetworkId = networkId.Value});
+            commandBuffer.SetComponent(reqSrc.ValueRO.SourceConnection, new CommandTarget { targetEntity = player });
 
             // Calculate spawn position offset based on NetworkId
             float3 basePosition = new float3(0, 15f, 0); // Base position, can be adjusted

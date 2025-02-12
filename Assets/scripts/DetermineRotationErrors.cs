@@ -104,7 +104,7 @@ public partial struct DetermineTargetRotationJob : IJobEntity
         quaternion desiredRotationWithYawInput;
         if (movementMode.mode == MovementModes.Hover_Stopping)
         {
-            //get desired local acceleration (only xz component considered)
+            // get desired local acceleration (output from linear PID controller
             float3 linAccelerationLocal = linearAcceleration.localLinearAcceleration;
             //add gravity so we can get the angle that will counteract our current velocity and gravity at the same time.
             float3 gravityGlobal = new float3(0, 9.81f, 0); // Gravity in global space
@@ -116,8 +116,34 @@ public partial struct DetermineTargetRotationJob : IJobEntity
             float tiltAngleZRad = math.atan2(linAccWithGravity_Local.z, linAccWithGravity_Local.y);
             float3 localTiltVector = new float3(tiltAngleZRad, 0, tiltAngleXRad); // Z for roll, X for pitch
             quaternion desiredTiltLocal = quaternion.Euler(localTiltVector);
+
+            
             desiredRotationLocal = math.mul(localTransform.Rotation, desiredTiltLocal);
 
+
+            //now add in the yaw input
+            //further manipulations need to use the already calculated desiredrotationglobal as a starting point
+            float3 desiredForward = math.forward(desiredRotationLocal); // Forward direction from desired rotation
+            float3 desiredUp = math.rotate(desiredRotationLocal, math.up()); // Up direction derived from desired rotation
+
+            float yawInput = math.radians(craftInput.YawVector * tuning.yawSpeed); // Convert yaw input to radians
+            quaternion yawSpin = quaternion.AxisAngle(desiredUp, yawInput); // Yaw around the desired up axis
+
+            // Step 3: Apply the yaw spin to the forward direction of the desired rotation
+            float3 newForward = math.rotate(yawSpin, desiredForward); // Rotate the forward vector using the yaw input
+
+            // Step 4: Create the final spin rotation using LookRotationSafe
+            desiredRotationWithYawInput = quaternion.LookRotationSafe(newForward, desiredUp); // Align forward and up
+
+        }
+        else if (movementMode.mode == MovementModes.Fly)
+        {
+            // New Fly mode: Map move input directly to roll and pitch
+            float roll = math.radians(craftInput.Move.x * tuning.rollSpeed); // Input for roll
+            float pitch = math.radians(craftInput.Move.y * tuning.pitchSpeed); // Input for pitch
+
+            quaternion desiredTiltLocal = quaternion.Euler(pitch, 0, -roll); // Local roll and pitch rotation
+            desiredRotationLocal = math.mul(localTransform.Rotation, desiredTiltLocal);
 
             //now add in the yaw input
             //further manipulations need to use the already calculated desiredrotationglobal as a starting point
@@ -157,16 +183,8 @@ public partial struct DetermineTargetRotationJob : IJobEntity
             // Step 4: Apply the combined spin to the desired tilt in local space
             desiredRotationLocal = math.mul(spin, desiredTiltLocal);
 
-   
-
-            //quaternion localRotation = math.mul(math.conjugate(localTransform.Rotation), yawedRotationGlobal);
-
             desiredRotationWithYawInput = desiredRotationLocal;
         }
-
-
-
-
 
         // 5. Update the TargetRotation component
         targetRotationComponent.Value = desiredRotationWithYawInput;

@@ -2,6 +2,8 @@ using Unity.Entities;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using Unity.NetCode;
+using System.Diagnostics;
+using System;
 
 public struct CraftInput : IInputComponentData
 {
@@ -13,9 +15,52 @@ public struct CraftInput : IInputComponentData
 
     public float Brakes;
 
-    public HoverMode_Player hoverMode;
-
 }
+
+
+[WorldSystemFilter(WorldSystemFilterFlags.ThinClientSimulation)]
+
+public partial class ThinClientInputSystem : SystemBase
+{
+    protected override void OnCreate()
+    {
+        RequireForUpdate<NetworkId>();
+
+    }
+
+    protected override void OnUpdate()
+    {
+        // Check if the connection has no command target set yet, if not then create it (this is the dummy thin client player)
+        if (SystemAPI.TryGetSingleton<CommandTarget>(out var commandTarget) && commandTarget.targetEntity == Entity.Null)
+            CreateThinClientPlayer();
+
+        // Thin clients do not spawn anything so there will be only one PlayerInput component
+        foreach (var inputData in SystemAPI.Query<RefRW<CraftInput>>())
+        {
+            inputData.ValueRW.Brakes = 1;
+        }
+    }
+
+    void CreateThinClientPlayer()
+    {
+        // Create dummy entity to store the thin clients inputs
+        // When using IInputComponentData the entity will need the input component and its generated
+        // buffer, the GhostOwner set up with the local connection ID and finally the
+        // CommandTarget needs to be manually set.
+        var ent = EntityManager.CreateEntity();
+        EntityManager.AddComponent<CraftInput>(ent);
+
+        var connectionId = SystemAPI.GetSingleton<NetworkId>().Value;
+        EntityManager.AddComponentData(ent, new GhostOwner() { NetworkId = connectionId });
+        EntityManager.AddComponent<InputBufferData<CraftInput>>(ent);
+
+        // NOTE: The server also has to manually set the command target for the thin client player
+        // even though auto command target is used on the player prefab (and normal clients), see
+        // SpawnPlayerSystem.
+        SystemAPI.SetSingleton(new CommandTarget { targetEntity = ent });
+    }
+}
+
 
 //client only
 [UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
@@ -39,7 +84,7 @@ public partial class GetPlayerInputSystem : SystemBase
         _playerControls.Hover.Mode.performed += ctx => onModeChange(ctx);
 
         GameObject menuControllerPrefab = Resources.Load<GameObject>("prefabs/MenuController");
-        GameObject menuControllerObject = Object.Instantiate(menuControllerPrefab);
+        GameObject menuControllerObject = UnityEngine.Object.Instantiate(menuControllerPrefab);
 
         //get MenuController component
         _menuController = menuControllerObject.GetComponent<MenuController>();
@@ -62,10 +107,11 @@ public partial class GetPlayerInputSystem : SystemBase
         var curYawInput = _playerControls.Hover.YawVector.ReadValue<float>();
         var Brakes = _playerControls.Hover.Brakes.ReadValue<float>();
 
-        foreach (var (craftInput, movementMode) in SystemAPI.Query<RefRW<CraftInput>, RefRW<MovementMode>>().WithAll<PlayerTag>())
+        foreach (var (craftInput, movementMode) in SystemAPI.Query<RefRW<CraftInput>, RefRW<MovementMode>>().WithAll<GhostOwnerIsLocal>())
         {
 
-            var currentPlayerMovementMode = craftInput.ValueRW.hoverMode;
+            //var currentPlayerMovementMode = craftInput.ValueRW.hoverMode;
+            var currentPlayerMovementMode = movementMode.ValueRO.hoverMode;
 
             var swapHovermode = (currentPlayerMovementMode == HoverMode_Player.VTOL ? HoverMode_Player.Locked : HoverMode_Player.VTOL);
 
@@ -76,8 +122,9 @@ public partial class GetPlayerInputSystem : SystemBase
                 YawVector = curYawInput,
                 Thrust = _playerControls.Hover.Thrust.ReadValue<float>(),
                 Brakes = Brakes,
-                hoverMode = _changeHoverMode ? swapHovermode : currentPlayerMovementMode
             };
+
+            movementMode.ValueRW = new MovementMode { hoverMode = _changeHoverMode ? swapHovermode : currentPlayerMovementMode };
 
         }
 

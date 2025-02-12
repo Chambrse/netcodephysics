@@ -1,16 +1,20 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using Unity.NetCode;
 using Unity.Transforms;
 using UnityEngine;
-using Unity.Entities.Serialization;
-using Unity.NetCode;
+
 
 public struct CraftTuning : IComponentData
 {
     public float yawSpeed;
+    public float pitchSpeed;
+    public float rollSpeed;
+    public float maxThrust;
 
 }
 
+[GhostComponent(SendTypeOptimization = GhostSendType.DontSend)]
 public struct PlayerTag : IComponentData { }
 
 public struct rotPIDTag : IComponentData 
@@ -20,20 +24,16 @@ public struct rotPIDTag : IComponentData
 
 public struct linPIDTag : IComponentData { };
 
-//public struct DebugVizEntityPrefabs : IComponentData
-//{
-//    public Entity rotationVizPrefab;
-//    public Entity vectorVizPrefab;
-//}
-
-
-
 [DisallowMultipleComponent]
 public class CraftAuthoring : MonoBehaviour
 {
     public float yawspeed = 1.0f;
 
     public float pitchSpeed = 1.0f;
+
+    public float rollSpeed = 1.0f;
+
+    public float maxThrust = 1.0f;
 
     //editor group
     [Header("Rotational Gains")]
@@ -51,6 +51,9 @@ public class CraftAuthoring : MonoBehaviour
 
     public float Kd_LIN = 1.0f;
 
+    [Header("Initial Movement Mode")]
+    public MovementModes MovementMode;
+
 
 
     class Baker : Baker<CraftAuthoring>
@@ -60,12 +63,25 @@ public class CraftAuthoring : MonoBehaviour
             // Get the entity corresponding to this GameObject
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
+            var tuning = new CraftTuning
+            {
+                yawSpeed = authoring.yawspeed,
+                rollSpeed = authoring.rollSpeed,
+                pitchSpeed = authoring.pitchSpeed,
+                maxThrust = authoring.maxThrust
+            };
+
             // Add components to the main entity using Baker API
-            AddComponent(entity, new CraftTuning { yawSpeed = authoring.yawspeed });
+            AddComponent(entity, tuning);
             AddComponent<PlayerTag>(entity);
-            AddComponent<MovementMode>(entity);
+            //AddComponent<MovementMode>(entity);
+            AddComponent(entity, new MovementMode { 
+                mode = authoring.MovementMode,
+                hoverMode = HoverMode_Player.Locked
+            });
             AddComponent<CraftPhysicsProperties>(entity);
             AddComponent<CraftInput>(entity);
+            //AddComponent(entity, initialInput);
             AddComponent<TargetRotation>(entity);
             AddComponent<AngularAcceleration>(entity);
             AddComponent<TargetRelativeVelocity>(entity);
@@ -95,16 +111,6 @@ public class CraftAuthoring : MonoBehaviour
             AddComponent(linearVectorPID, new linPIDTag { });
             AddComponent(linearVectorPID, new PIDGainFromInput { GainInput = 0f });
             AddComponent(linearVectorPID, new Parent { Value = entity });
-
-            //var hoverHeightPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HoverHeightPID");
-            //AddComponent(hoverHeightPID, new PIDGainSet { Kp = authoring.Kp_LIN_Height, Ki = authoring.Ki_LIN_Height, Kd = authoring.Kd_LIN_Height });
-            //AddComponent(hoverHeightPID, new PIDInputs_Scalar { Error = 0 });
-            //AddComponent(hoverHeightPID, new PIDOutputs_Scalar { linearAcceleration = 0 });
-            //AddComponent(hoverHeightPID, new Parent { Value = entity });
-
-            //var horizontalPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "HorizontalPID");
-            //AddComponent(horizontalPID, new PIDGainSet { Kp = authroing })
-
 
         }
     }

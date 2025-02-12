@@ -173,8 +173,8 @@ public partial struct PIDJob : IJobEntity
         //    (pidGainSet.Kd + inputGain.GainInput) * deltaError;
 
         pidOutputs.VectorResponse =
-    (pidGainSet.Kp) * error -
-    (pidGainSet.Kd) * deltaError;
+    ((pidGainSet.Kp) * error -
+    (pidGainSet.Kd) * deltaError);
 
     }
 }

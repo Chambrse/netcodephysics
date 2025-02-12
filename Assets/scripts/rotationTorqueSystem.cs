@@ -22,6 +22,8 @@ public partial struct RotationTorqueSystem : ISystem
     public void OnCreate(ref SystemState state)
     {
         // Initialization code here
+        state.RequireForUpdate<CraftInput>();
+
     }
 
     [BurstCompile]
