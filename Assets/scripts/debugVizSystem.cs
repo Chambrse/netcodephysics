@@ -16,7 +16,7 @@ public struct DebugSettings : IComponentData
 
 
 //debugsystem systembase
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPresentationSystemGroup))]
 //client only
 [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
 public partial struct DebugVizSystem : ISystem

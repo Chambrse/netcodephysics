@@ -6,7 +6,7 @@ using Unity.Collections;
 using Unity.Physics;
 
 // Example custom group name
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPresentationSystemGroup))]
 [UpdateAfter(typeof(LinearAccelerationSystem))]
 [BurstCompile]
 public partial struct ThrusterSystem : ISystem

@@ -17,7 +17,7 @@ public struct LinearAcceleration : IComponentData
     public float3 totalLocalLinearAcceleration;
 }
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(RotationTorqueSystem))]
 [BurstCompile]
 public partial struct LinearAccelerationSystem : ISystem

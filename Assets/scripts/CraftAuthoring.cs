@@ -22,6 +22,13 @@ public struct rotPIDTag : IComponentData
     
 };
 
+// we use this to bypass the multiple physics steps and get a smooth camera
+public struct cameraFollowPosition : IComponentData
+{
+    // The smoothed "presentation" transform that we use for rendering/camera
+    public float3 SmoothedPosition;
+    public quaternion SmoothedRotation;
+}
 public struct linPIDTag : IComponentData { };
 
 [DisallowMultipleComponent]
@@ -80,6 +87,7 @@ public class CraftAuthoring : MonoBehaviour
                 hoverMode = HoverMode_Player.Locked
             });
             AddComponent<CraftPhysicsProperties>(entity);
+            AddComponent<cameraFollowPosition>(entity);
             AddComponent<CraftInput>(entity);
             //AddComponent(entity, initialInput);
             AddComponent<TargetRotation>(entity);

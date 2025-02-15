@@ -45,7 +45,7 @@ public struct PIDOutputs_Vector : IComponentData
 //}
 
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(DetermineRotationErrors))]
 [BurstCompile]
 public partial struct PIDSystem : ISystem

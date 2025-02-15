@@ -13,7 +13,7 @@ public struct AngularAcceleration : IComponentData
     public float3 angularAcceleration;
 }   
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(PIDSystem))]
 [BurstCompile]
 public partial struct RotationTorqueSystem : ISystem

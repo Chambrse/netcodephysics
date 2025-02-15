@@ -25,7 +25,7 @@ public struct MovementMode : IInputComponentData
     public HoverMode_Player hoverMode;
 }
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomInputSystemGroup))]
 [UpdateAfter(typeof(GetPlayerInputSystem))]
 public partial struct DetermineMovementModeSystem : ISystem
 {
@@ -54,12 +54,14 @@ public partial struct AssignModeJob : IJobEntity
     public float DeltaTime;
 
     [BurstCompile]
-    private void Execute(ref MovementMode mode, in CraftInput input)
+    private void Execute(ref MovementMode mode, in CraftInput input, in PhysicsVelocity physicsVelocity)
     {
+        MovementMode oldMovementMode = mode;
+
         if (mode.hoverMode == HoverMode_Player.VTOL)
         {
             // Check if the forward velocity exceeds the threshold
-            if (input.Thrust > math.EPSILON) // Use abs if direction doesn't matter
+            if (input.Thrust > math.EPSILON || (math.length(physicsVelocity.Linear) > 5 && oldMovementMode.mode == MovementModes.Fly)) // Use abs if direction doesn't matter
             {
                 mode.mode = MovementModes.Fly;
             }

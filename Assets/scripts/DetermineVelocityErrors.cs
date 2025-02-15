@@ -19,7 +19,7 @@ public struct PreviousVelocity : IComponentData
 }
 
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(DetermineMovementModeSystem))]
 [BurstCompile]
 public partial struct DetermineVelocityErrors : ISystem

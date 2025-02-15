@@ -4,6 +4,7 @@ using UnityEngine.InputSystem;
 using Unity.NetCode;
 using System.Diagnostics;
 using System;
+using Unity.Mathematics;
 
 public struct CraftInput : IInputComponentData
 {
@@ -17,9 +18,8 @@ public struct CraftInput : IInputComponentData
 
 }
 
-
+[UpdateInGroup(typeof(CustomInputSystemGroup))]
 [WorldSystemFilter(WorldSystemFilterFlags.ThinClientSimulation)]
-
 public partial class ThinClientInputSystem : SystemBase
 {
     protected override void OnCreate()
@@ -35,9 +35,12 @@ public partial class ThinClientInputSystem : SystemBase
             CreateThinClientPlayer();
 
         // Thin clients do not spawn anything so there will be only one PlayerInput component
-        foreach (var inputData in SystemAPI.Query<RefRW<CraftInput>>())
+        foreach (var (inputData, movementMode) in SystemAPI.Query<RefRW<CraftInput>,RefRW<MovementMode>>())
         {
             inputData.ValueRW.Brakes = 1;
+            movementMode.ValueRW.mode = MovementModes.Hover_Stopping;
+            movementMode.ValueRW.hoverMode = HoverMode_Player.Locked;
+
         }
     }
 
@@ -49,10 +52,12 @@ public partial class ThinClientInputSystem : SystemBase
         // CommandTarget needs to be manually set.
         var ent = EntityManager.CreateEntity();
         EntityManager.AddComponent<CraftInput>(ent);
+        EntityManager.AddComponent<MovementMode>(ent);
 
         var connectionId = SystemAPI.GetSingleton<NetworkId>().Value;
         EntityManager.AddComponentData(ent, new GhostOwner() { NetworkId = connectionId });
         EntityManager.AddComponent<InputBufferData<CraftInput>>(ent);
+        EntityManager.AddComponent<InputBufferData<MovementMode>>(ent);
 
         // NOTE: The server also has to manually set the command target for the thin client player
         // even though auto command target is used on the player prefab (and normal clients), see
@@ -63,7 +68,7 @@ public partial class ThinClientInputSystem : SystemBase
 
 
 //client only
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomInputSystemGroup))]
 [WorldSystemFilter(WorldSystemFilterFlags.ClientSimulation)]
 public partial class GetPlayerInputSystem : SystemBase
 {
@@ -71,6 +76,8 @@ public partial class GetPlayerInputSystem : SystemBase
     private MenuController _menuController;
 
     private bool _changeHoverMode = false;
+
+    private float lastYawInput = 0;
 
     protected override void OnCreate()
     {
@@ -107,6 +114,10 @@ public partial class GetPlayerInputSystem : SystemBase
         var curYawInput = _playerControls.Hover.YawVector.ReadValue<float>();
         var Brakes = _playerControls.Hover.Brakes.ReadValue<float>();
 
+        //lerp
+        float lerpedYaw = math.lerp(lastYawInput, curYawInput, 0.01f);
+        lastYawInput = lerpedYaw;
+
         foreach (var (craftInput, movementMode) in SystemAPI.Query<RefRW<CraftInput>, RefRW<MovementMode>>().WithAll<GhostOwnerIsLocal>())
         {
 
@@ -119,7 +130,7 @@ public partial class GetPlayerInputSystem : SystemBase
             craftInput.ValueRW = new CraftInput
             {
                 Move = curMoveInput,
-                YawVector = curYawInput,
+                YawVector = lerpedYaw,
                 Thrust = _playerControls.Hover.Thrust.ReadValue<float>(),
                 Brakes = Brakes,
             };

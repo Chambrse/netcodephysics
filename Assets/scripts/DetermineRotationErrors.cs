@@ -22,7 +22,7 @@ public struct TargetRotation : IComponentData
     public float3 targetRotationError;
 }
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(PIDSystemLinear))]
 [BurstCompile]
 public partial struct DetermineRotationErrors : ISystem

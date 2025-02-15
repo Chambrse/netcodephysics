@@ -105,18 +105,26 @@ public partial struct GoInGameServerSystem : ISystem
             commandBuffer.SetComponent(player, new GhostOwner { NetworkId = networkId.Value});
             commandBuffer.SetComponent(reqSrc.ValueRO.SourceConnection, new CommandTarget { targetEntity = player });
 
-            // Calculate spawn position offset based on NetworkId
-            float3 basePosition = new float3(0, 15f, 0); // Base position, can be adjusted
-            float3 spawnOffset = new float3(0, 0, networkId.Value * 20.0f); // Offset players by 5 units on X and Z axes
+            //   basePosition: where the first player (ID=0) should spawn
+            //   sideLength: the overall size of the 10×10×10 cube
+            float3 basePosition = new float3(0, 300f, 0);
+            float sideLength = 450f; // example
 
-            // Set the player's position with the calculated offset
+            int index = networkId.Value; // zero-based index (0..99)
+            int xIndex = index % 10;
+            int yIndex = (index / 10) % 10;
+            int zIndex = (index / 100) % 10;
+            // For a 10×10×10 grid, we divide by 9 so that index=0 is at basePosition,
+            // and index=9 is at basePosition + sideLength in that dimension:
+            float cellSize = sideLength / 9f;
+
+            float3 offset = new float3(xIndex, yIndex, zIndex) * cellSize;
             commandBuffer.SetComponent(player, new LocalTransform
             {
-                Position = basePosition + spawnOffset,
-                Rotation = quaternion.AxisAngle(math.up(), math.radians(100)), // Keep default rotation
-                Scale = 1.0f // Default scale, can be changed as needed
+                Position = basePosition + offset,
+                Rotation = quaternion.AxisAngle(math.up(), math.radians(0)),
+                Scale = 1f
             });
-
 
             // Add the player to the linked entity group so it is destroyed automatically on disconnect
             commandBuffer.AppendToBuffer(reqSrc.ValueRO.SourceConnection, new LinkedEntityGroup{Value = player});

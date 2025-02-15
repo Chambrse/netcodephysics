@@ -37,7 +37,7 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""initialStateCheck"": true
                 },
                 {
-                    ""name"": ""Mode"",
+                    ""name"": ""hoverLock"",
                     ""type"": ""Button"",
                     ""id"": ""5bb3622d-e55d-4695-9a6d-fbac2bd73950"",
                     ""expectedControlType"": ""Button"",
@@ -53,15 +53,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": false
-                },
-                {
-                    ""name"": ""HoverHeightVector"",
-                    ""type"": ""Value"",
-                    ""id"": ""b241bce1-ff00-4cfe-8214-3779840d42b5"",
-                    ""expectedControlType"": ""Axis"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": true
                 },
                 {
                     ""name"": ""YawVector"",
@@ -80,15 +71,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""processors"": """",
                     ""interactions"": """",
                     ""initialStateCheck"": true
-                },
-                {
-                    ""name"": ""SwitchMode"",
-                    ""type"": ""Button"",
-                    ""id"": ""f6ccc02c-af57-4fe5-98d7-8860c837d66a"",
-                    ""expectedControlType"": ""Button"",
-                    ""processors"": """",
-                    ""interactions"": """",
-                    ""initialStateCheck"": false
                 },
                 {
                     ""name"": ""CameraLook"",
@@ -187,28 +169,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""0a0d0b35-4950-403f-9686-d3a1618699c8"",
-                    ""path"": ""<Keyboard>/space"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Mode"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
-                    ""id"": ""80cef66a-5864-4499-b67d-a34978d73058"",
-                    ""path"": ""<Gamepad>/leftStickPress"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""Mode"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": """",
                     ""id"": ""502cffc0-4081-4470-94d6-85119c665c6d"",
                     ""path"": ""<Keyboard>/f"",
                     ""interactions"": """",
@@ -228,72 +188,6 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Ignite"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""One Modifier"",
-                    ""id"": ""e7ee8ada-f46c-46cd-9309-4ee8c6de9100"",
-                    ""path"": ""OneModifier"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""modifier"",
-                    ""id"": ""ce1eaa34-68d5-432f-8993-1a0907ff6fe3"",
-                    ""path"": ""<Gamepad>/rightStickPress"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""binding"",
-                    ""id"": ""b5e6402e-bcf3-4df2-a4e0-773f8be357f6"",
-                    ""path"": ""<Gamepad>/rightStick/y"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""1D Axis"",
-                    ""id"": ""9bd63f52-2af9-402b-8c41-545a2a0b1927"",
-                    ""path"": ""1DAxis(whichSideWins=1)"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": true,
-                    ""isPartOfComposite"": false
-                },
-                {
-                    ""name"": ""positive"",
-                    ""id"": ""ead87a3a-be07-4c80-b9f2-23f42dd0b0d1"",
-                    ""path"": ""<Keyboard>/leftShift"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
-                },
-                {
-                    ""name"": ""negative"",
-                    ""id"": ""c8526e63-fa71-4751-b447-9c894f5b7d83"",
-                    ""path"": ""<Keyboard>/leftCtrl"",
-                    ""interactions"": """",
-                    ""processors"": """",
-                    ""groups"": """",
-                    ""action"": ""HoverHeightVector"",
-                    ""isComposite"": false,
-                    ""isPartOfComposite"": true
                 },
                 {
                     ""name"": ""1D Axis"",
@@ -385,19 +279,19 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                 },
                 {
                     ""name"": """",
-                    ""id"": ""844701f7-a6c6-4487-9cd0-df9805832c6c"",
-                    ""path"": ""<Gamepad>/buttonNorth"",
+                    ""id"": ""72fb9ef8-9703-4f8e-95e5-0d4f7bff23aa"",
+                    ""path"": ""<Gamepad>/rightStick"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
-                    ""action"": ""SwitchMode"",
+                    ""action"": ""CameraLook"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
                 },
                 {
                     ""name"": """",
-                    ""id"": ""72fb9ef8-9703-4f8e-95e5-0d4f7bff23aa"",
-                    ""path"": ""<Gamepad>/rightStick"",
+                    ""id"": ""302d07f1-7695-4a2a-b1ec-5087db3b23cf"",
+                    ""path"": ""<Mouse>/position"",
                     ""interactions"": """",
                     ""processors"": """",
                     ""groups"": """",
@@ -437,6 +331,39 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
                     ""action"": ""Brakes"",
                     ""isComposite"": false,
                     ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""2c3c847e-f7b5-41af-ae9a-0ea6d49470e1"",
+                    ""path"": ""<Keyboard>/space"",
+                    ""interactions"": ""Hold"",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""Brakes"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""841e7096-77f2-4c88-ba21-5d108a62e10f"",
+                    ""path"": ""<Gamepad>/dpad/up"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""hoverLock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
+                },
+                {
+                    ""name"": """",
+                    ""id"": ""c65a294a-e3a6-47c5-8c13-dad7ea0b837d"",
+                    ""path"": ""<Keyboard>/capsLock"",
+                    ""interactions"": """",
+                    ""processors"": """",
+                    ""groups"": """",
+                    ""action"": ""hoverLock"",
+                    ""isComposite"": false,
+                    ""isPartOfComposite"": false
                 }
             ]
         }
@@ -446,12 +373,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         // Hover
         m_Hover = asset.FindActionMap("Hover", throwIfNotFound: true);
         m_Hover_Move = m_Hover.FindAction("Move", throwIfNotFound: true);
-        m_Hover_Mode = m_Hover.FindAction("Mode", throwIfNotFound: true);
+        m_Hover_hoverLock = m_Hover.FindAction("hoverLock", throwIfNotFound: true);
         m_Hover_Ignite = m_Hover.FindAction("Ignite", throwIfNotFound: true);
-        m_Hover_HoverHeightVector = m_Hover.FindAction("HoverHeightVector", throwIfNotFound: true);
         m_Hover_YawVector = m_Hover.FindAction("YawVector", throwIfNotFound: true);
         m_Hover_Thrust = m_Hover.FindAction("Thrust", throwIfNotFound: true);
-        m_Hover_SwitchMode = m_Hover.FindAction("SwitchMode", throwIfNotFound: true);
         m_Hover_CameraLook = m_Hover.FindAction("CameraLook", throwIfNotFound: true);
         m_Hover_ToggleMenu = m_Hover.FindAction("ToggleMenu", throwIfNotFound: true);
         m_Hover_Brakes = m_Hover.FindAction("Brakes", throwIfNotFound: true);
@@ -517,12 +442,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     private readonly InputActionMap m_Hover;
     private List<IHoverActions> m_HoverActionsCallbackInterfaces = new List<IHoverActions>();
     private readonly InputAction m_Hover_Move;
-    private readonly InputAction m_Hover_Mode;
+    private readonly InputAction m_Hover_hoverLock;
     private readonly InputAction m_Hover_Ignite;
-    private readonly InputAction m_Hover_HoverHeightVector;
     private readonly InputAction m_Hover_YawVector;
     private readonly InputAction m_Hover_Thrust;
-    private readonly InputAction m_Hover_SwitchMode;
     private readonly InputAction m_Hover_CameraLook;
     private readonly InputAction m_Hover_ToggleMenu;
     private readonly InputAction m_Hover_Brakes;
@@ -531,12 +454,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
         private @PlayerControls m_Wrapper;
         public HoverActions(@PlayerControls wrapper) { m_Wrapper = wrapper; }
         public InputAction @Move => m_Wrapper.m_Hover_Move;
-        public InputAction @Mode => m_Wrapper.m_Hover_Mode;
+        public InputAction @hoverLock => m_Wrapper.m_Hover_hoverLock;
         public InputAction @Ignite => m_Wrapper.m_Hover_Ignite;
-        public InputAction @HoverHeightVector => m_Wrapper.m_Hover_HoverHeightVector;
         public InputAction @YawVector => m_Wrapper.m_Hover_YawVector;
         public InputAction @Thrust => m_Wrapper.m_Hover_Thrust;
-        public InputAction @SwitchMode => m_Wrapper.m_Hover_SwitchMode;
         public InputAction @CameraLook => m_Wrapper.m_Hover_CameraLook;
         public InputAction @ToggleMenu => m_Wrapper.m_Hover_ToggleMenu;
         public InputAction @Brakes => m_Wrapper.m_Hover_Brakes;
@@ -552,24 +473,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started += instance.OnMove;
             @Move.performed += instance.OnMove;
             @Move.canceled += instance.OnMove;
-            @Mode.started += instance.OnMode;
-            @Mode.performed += instance.OnMode;
-            @Mode.canceled += instance.OnMode;
+            @hoverLock.started += instance.OnHoverLock;
+            @hoverLock.performed += instance.OnHoverLock;
+            @hoverLock.canceled += instance.OnHoverLock;
             @Ignite.started += instance.OnIgnite;
             @Ignite.performed += instance.OnIgnite;
             @Ignite.canceled += instance.OnIgnite;
-            @HoverHeightVector.started += instance.OnHoverHeightVector;
-            @HoverHeightVector.performed += instance.OnHoverHeightVector;
-            @HoverHeightVector.canceled += instance.OnHoverHeightVector;
             @YawVector.started += instance.OnYawVector;
             @YawVector.performed += instance.OnYawVector;
             @YawVector.canceled += instance.OnYawVector;
             @Thrust.started += instance.OnThrust;
             @Thrust.performed += instance.OnThrust;
             @Thrust.canceled += instance.OnThrust;
-            @SwitchMode.started += instance.OnSwitchMode;
-            @SwitchMode.performed += instance.OnSwitchMode;
-            @SwitchMode.canceled += instance.OnSwitchMode;
             @CameraLook.started += instance.OnCameraLook;
             @CameraLook.performed += instance.OnCameraLook;
             @CameraLook.canceled += instance.OnCameraLook;
@@ -586,24 +501,18 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
             @Move.started -= instance.OnMove;
             @Move.performed -= instance.OnMove;
             @Move.canceled -= instance.OnMove;
-            @Mode.started -= instance.OnMode;
-            @Mode.performed -= instance.OnMode;
-            @Mode.canceled -= instance.OnMode;
+            @hoverLock.started -= instance.OnHoverLock;
+            @hoverLock.performed -= instance.OnHoverLock;
+            @hoverLock.canceled -= instance.OnHoverLock;
             @Ignite.started -= instance.OnIgnite;
             @Ignite.performed -= instance.OnIgnite;
             @Ignite.canceled -= instance.OnIgnite;
-            @HoverHeightVector.started -= instance.OnHoverHeightVector;
-            @HoverHeightVector.performed -= instance.OnHoverHeightVector;
-            @HoverHeightVector.canceled -= instance.OnHoverHeightVector;
             @YawVector.started -= instance.OnYawVector;
             @YawVector.performed -= instance.OnYawVector;
             @YawVector.canceled -= instance.OnYawVector;
             @Thrust.started -= instance.OnThrust;
             @Thrust.performed -= instance.OnThrust;
             @Thrust.canceled -= instance.OnThrust;
-            @SwitchMode.started -= instance.OnSwitchMode;
-            @SwitchMode.performed -= instance.OnSwitchMode;
-            @SwitchMode.canceled -= instance.OnSwitchMode;
             @CameraLook.started -= instance.OnCameraLook;
             @CameraLook.performed -= instance.OnCameraLook;
             @CameraLook.canceled -= instance.OnCameraLook;
@@ -633,12 +542,10 @@ public partial class @PlayerControls: IInputActionCollection2, IDisposable
     public interface IHoverActions
     {
         void OnMove(InputAction.CallbackContext context);
-        void OnMode(InputAction.CallbackContext context);
+        void OnHoverLock(InputAction.CallbackContext context);
         void OnIgnite(InputAction.CallbackContext context);
-        void OnHoverHeightVector(InputAction.CallbackContext context);
         void OnYawVector(InputAction.CallbackContext context);
         void OnThrust(InputAction.CallbackContext context);
-        void OnSwitchMode(InputAction.CallbackContext context);
         void OnCameraLook(InputAction.CallbackContext context);
         void OnToggleMenu(InputAction.CallbackContext context);
         void OnBrakes(InputAction.CallbackContext context);

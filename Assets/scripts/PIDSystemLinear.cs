@@ -5,7 +5,7 @@ using UnityEngine;
 using Unity.Transforms;
 using Unity.Collections;
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomPhysicsSystemGroup))]
 [UpdateAfter(typeof(DetermineVelocityErrors))]
 [BurstCompile]
 public partial struct PIDSystemLinear : ISystem

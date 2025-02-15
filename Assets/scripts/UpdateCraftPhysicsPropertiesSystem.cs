@@ -15,7 +15,7 @@ public struct CraftPhysicsProperties : IComponentData
     public float totalMass;
 }
 
-[UpdateInGroup(typeof(CustomInitializaionSystemGroup))]
+[UpdateInGroup(typeof(CustomInputSystemGroup))]
 [UpdateAfter(typeof(DetermineMovementModeSystem))]
 [BurstCompile]
 public partial struct UpdateCraftPhysicsPropertiesSystem : ISystem
