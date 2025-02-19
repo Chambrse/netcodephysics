@@ -310,17 +310,25 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8acdb699a8353f044a2e08ef99d9fd79, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  yawspeed: 30
-  pitchSpeed: 50
-  rollSpeed: 30
-  maxThrust: 100
-  Kp_ROT: 15
+  yawspeed: 25
+  pitchSpeed: 25
+  rollSpeed: 50
+  maxThrust: 250
+  Kp_ROT: 30
   Ki_ROT: 0
   Kd_ROT: 10
   Kp_LIN: 1
   Ki_LIN: 0
   Kd_LIN: 0
   MovementMode: 1
+  dragVector:
+    x: 0.005
+    y: 0.005
+    z: 0.0001
+  centerOfPressureOffset:
+    x: 0
+    y: 0
+    z: -0.001
 --- !u!114 &3831285198593115865
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -364,7 +372,7 @@ Rigidbody:
   m_GameObject: {fileID: 3950049609685769940}
   serializedVersion: 4
   m_Mass: 10
-  m_Drag: 0.05
+  m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
   m_InertiaTensor: {x: 100, y: 100, z: 100}

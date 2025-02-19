@@ -1,3 +1,4 @@
+using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.NetCode;
@@ -11,16 +12,14 @@ public struct CraftTuning : IComponentData
     public float pitchSpeed;
     public float rollSpeed;
     public float maxThrust;
-
+    public float3 dragVector;
+    public float3 centerOfPressureOffset;
 }
 
 [GhostComponent(SendTypeOptimization = GhostSendType.DontSend)]
-public struct PlayerTag : IComponentData { }
-
-public struct rotPIDTag : IComponentData 
-{
-    
-};
+public struct PlayerTag : IComponentData { };
+public struct rotPIDTag : IComponentData { };
+public struct linPIDTag : IComponentData { };
 
 // we use this to bypass the multiple physics steps and get a smooth camera
 public struct cameraFollowPosition : IComponentData
@@ -29,7 +28,11 @@ public struct cameraFollowPosition : IComponentData
     public float3 SmoothedPosition;
     public quaternion SmoothedRotation;
 }
-public struct linPIDTag : IComponentData { };
+
+public struct Username : IComponentData
+{
+    public FixedString64Bytes Value;
+}
 
 [DisallowMultipleComponent]
 public class CraftAuthoring : MonoBehaviour
@@ -61,6 +64,12 @@ public class CraftAuthoring : MonoBehaviour
     [Header("Initial Movement Mode")]
     public MovementModes MovementMode;
 
+    [Header("Drag Coefficients")]
+    public float3 dragVector = float3.zero;
+
+    [Header("centerOfPressure offset")]
+    public float3 centerOfPressureOffset= float3.zero;
+
 
 
     class Baker : Baker<CraftAuthoring>
@@ -75,7 +84,9 @@ public class CraftAuthoring : MonoBehaviour
                 yawSpeed = authoring.yawspeed,
                 rollSpeed = authoring.rollSpeed,
                 pitchSpeed = authoring.pitchSpeed,
-                maxThrust = authoring.maxThrust
+                maxThrust = authoring.maxThrust,
+                dragVector = authoring.dragVector,
+                centerOfPressureOffset = authoring.centerOfPressureOffset,
             };
 
             // Add components to the main entity using Baker API
@@ -84,7 +95,7 @@ public class CraftAuthoring : MonoBehaviour
             //AddComponent<MovementMode>(entity);
             AddComponent(entity, new MovementMode { 
                 mode = authoring.MovementMode,
-                hoverMode = HoverMode_Player.Locked
+                locked = false
             });
             AddComponent<CraftPhysicsProperties>(entity);
             AddComponent<cameraFollowPosition>(entity);
@@ -95,6 +106,8 @@ public class CraftAuthoring : MonoBehaviour
             AddComponent<TargetRelativeVelocity>(entity);
             AddComponent<PreviousVelocity>(entity);
             AddComponent<LinearAcceleration>(entity);
+            AddComponent<AeroForces>(entity);
+            AddComponent<Username>(entity);
 
             var rotationPID = CreateAdditionalEntity(TransformUsageFlags.ManualOverride, false, "RotationPID");
             AddComponent(rotationPID, new PIDGainSet { Kp = authoring.Kp_ROT, Ki = authoring.Ki_ROT, Kd = authoring.Kd_ROT });  

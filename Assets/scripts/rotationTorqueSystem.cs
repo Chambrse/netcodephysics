@@ -85,7 +85,8 @@ public partial struct ApplyTorqueWithGyroscopicEffectsJob : IJobEntity
     private void Execute(
         in AngularAcceleration craftAngularAcceleration,
         ref PhysicsVelocity physicsVelocity,
-        in PhysicsMass physicsMass)
+        in PhysicsMass physicsMass,
+        in AeroForces aeroForces)
     {
         // // Retrieve the desired angular acceleration (assumed to be in local space)
         // float3 desiredAngularAcceleration = craftAngularAcceleration.angularAcceleration;
@@ -113,7 +114,7 @@ public partial struct ApplyTorqueWithGyroscopicEffectsJob : IJobEntity
         float3 desiredAngularAcceleration = craftAngularAcceleration.angularAcceleration;
 
         // Convert the angular acceleration to a change in angular velocity
-        float3 angularVelocityChange = desiredAngularAcceleration * DeltaTime;
+        float3 angularVelocityChange = (desiredAngularAcceleration + aeroForces.angularAeroForces) * DeltaTime;
 
         //clamp the angular velocity change to the maximum angular velocity
         // angularVelocityChange = math.clamp(angularVelocityChange, new float3(-1,-1,-1), new float3(1,1,1));

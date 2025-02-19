@@ -7,22 +7,14 @@ using Unity.Physics;
 
 public enum MovementModes
 {
-    Hover,
-    Hover_Stopping,
-    Fly,
-    VTOL
-}
-
-public enum HoverMode_Player
-{
-    VTOL,
-    Locked
+    bellyFirst,
+    Fly
 }
 
 public struct MovementMode : IInputComponentData
 {
     public MovementModes mode;
-    public HoverMode_Player hoverMode;
+    public bool locked;
 }
 
 [UpdateInGroup(typeof(CustomInputSystemGroup))]
@@ -58,29 +50,14 @@ public partial struct AssignModeJob : IJobEntity
     {
         MovementMode oldMovementMode = mode;
 
-        if (mode.hoverMode == HoverMode_Player.VTOL)
+        if (oldMovementMode.locked)
         {
-            // Check if the forward velocity exceeds the threshold
-            if (input.Thrust > math.EPSILON || (math.length(physicsVelocity.Linear) > 5 && oldMovementMode.mode == MovementModes.Fly)) // Use abs if direction doesn't matter
-            {
-                mode.mode = MovementModes.Fly;
-            }
-            else
-            {
-                mode.mode = MovementModes.VTOL;
-            }
-        }
-        else
+
+        } else
         {
-            if (input.Brakes > 0)
-            {
-                mode.mode = MovementModes.Hover_Stopping;
-            }
-            else
-            {
-                mode.mode = MovementModes.Hover;
-            }
+            mode.mode = MovementModes.Fly;
         }
+
     }
 }
 

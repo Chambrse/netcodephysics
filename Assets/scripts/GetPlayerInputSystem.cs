@@ -38,8 +38,8 @@ public partial class ThinClientInputSystem : SystemBase
         foreach (var (inputData, movementMode) in SystemAPI.Query<RefRW<CraftInput>,RefRW<MovementMode>>())
         {
             inputData.ValueRW.Brakes = 1;
-            movementMode.ValueRW.mode = MovementModes.Hover_Stopping;
-            movementMode.ValueRW.hoverMode = HoverMode_Player.Locked;
+            movementMode.ValueRW.mode = MovementModes.bellyFirst;
+            movementMode.ValueRW.locked = true;
 
         }
     }
@@ -75,7 +75,7 @@ public partial class GetPlayerInputSystem : SystemBase
     private PlayerControls _playerControls;
     private MenuController _menuController;
 
-    private bool _changeHoverMode = false;
+    private bool toggleLock = false;
 
     private float lastYawInput = 0;
 
@@ -88,7 +88,9 @@ public partial class GetPlayerInputSystem : SystemBase
         _playerControls = new PlayerControls();
         _playerControls.Enable();
 
-        _playerControls.Hover.Mode.performed += ctx => onModeChange(ctx);
+        _playerControls.Hover.hoverLock.performed += HoverLock_performed;
+
+
 
         GameObject menuControllerPrefab = Resources.Load<GameObject>("prefabs/MenuController");
         GameObject menuControllerObject = UnityEngine.Object.Instantiate(menuControllerPrefab);
@@ -100,11 +102,11 @@ public partial class GetPlayerInputSystem : SystemBase
         _menuController.Initialize(_playerControls);
     }
 
-    private void onModeChange(InputAction.CallbackContext ctx)
+    private void HoverLock_performed(InputAction.CallbackContext ctx)
     {
 
             // swap hover mode
-            _changeHoverMode = true;
+            toggleLock = true;
         
     }
 
@@ -120,13 +122,7 @@ public partial class GetPlayerInputSystem : SystemBase
 
         foreach (var (craftInput, movementMode) in SystemAPI.Query<RefRW<CraftInput>, RefRW<MovementMode>>().WithAll<GhostOwnerIsLocal>())
         {
-
-            //var currentPlayerMovementMode = craftInput.ValueRW.hoverMode;
-            var currentPlayerMovementMode = movementMode.ValueRO.hoverMode;
-
-            var swapHovermode = (currentPlayerMovementMode == HoverMode_Player.VTOL ? HoverMode_Player.Locked : HoverMode_Player.VTOL);
-
-
+            
             craftInput.ValueRW = new CraftInput
             {
                 Move = curMoveInput,
@@ -135,12 +131,14 @@ public partial class GetPlayerInputSystem : SystemBase
                 Brakes = Brakes,
             };
 
-            movementMode.ValueRW = new MovementMode { hoverMode = _changeHoverMode ? swapHovermode : currentPlayerMovementMode };
+            movementMode.ValueRW = new MovementMode { 
+                locked = toggleLock ? !movementMode.ValueRO.locked : movementMode.ValueRO.locked
+            };
 
         }
 
 
-        _changeHoverMode = false;
+        toggleLock = false;
     }
 
     protected override void OnDestroy()

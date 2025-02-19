@@ -102,7 +102,7 @@ public partial struct DetermineTargetRotationJob : IJobEntity
 
         quaternion desiredRotationLocal;
         quaternion desiredRotationWithYawInput;
-        if (movementMode.mode == MovementModes.Hover_Stopping)
+        if (movementMode.mode == MovementModes.bellyFirst)
         {
             // get desired local acceleration (output from linear PID controller
             float3 linAccelerationLocal = linearAcceleration.localLinearAcceleration;

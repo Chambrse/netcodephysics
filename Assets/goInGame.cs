@@ -26,6 +26,7 @@ public partial struct SetRpcSystemDynamicAssemblyListSystem : ISystem
 // RPC request from client to server for game to go "in game" and send snapshots / inputs
 public struct GoInGameRequest : IRpcCommand
 {
+    public FixedString64Bytes PlayerName;
 }
 
 [BurstCompile]
@@ -47,13 +48,22 @@ public partial struct GoInGameClientSystem : ISystem
     [BurstCompile]
     public void OnUpdate(ref SystemState state)
     {
+        // (If "Username" key doesn't exist, default to "Unknown").
+
+        string username = PlayerPrefs.GetString("Username", "Unknown");
+
         var commandBuffer = new EntityCommandBuffer(Allocator.Temp);
         foreach (var (id, entity) in SystemAPI.Query<RefRO<NetworkId>>().WithEntityAccess().WithNone<NetworkStreamInGame>())
         {
+            Debug.Log("attempting connect");
             commandBuffer.AddComponent<NetworkStreamInGame>(entity);
             var req = commandBuffer.CreateEntity();
-            commandBuffer.AddComponent<GoInGameRequest>(req);
+            commandBuffer.AddComponent(req, new GoInGameRequest
+            {
+                PlayerName = username
+            });
             commandBuffer.AddComponent(req, new SendRpcCommandRequest { TargetConnection = entity });
+
         }
         commandBuffer.Playback(state.EntityManager);
     }
@@ -90,8 +100,12 @@ public partial struct GoInGameServerSystem : ISystem
         var commandBuffer = new EntityCommandBuffer(Allocator.Temp);
         networkIdFromEntity.Update(ref state);
 
-        foreach (var (reqSrc, reqEntity) in SystemAPI.Query<RefRO<ReceiveRpcCommandRequest>>().WithAll<GoInGameRequest>().WithEntityAccess())
+        foreach (var (reqSrc, goInGameData, reqEntity) in SystemAPI
+                     .Query<RefRO<ReceiveRpcCommandRequest>, RefRO<GoInGameRequest>>()
+                     .WithEntityAccess())
         {
+            // Now you have goInGameData.ValueRO.PlayerName
+            var playerName = goInGameData.ValueRO.PlayerName;
             commandBuffer.AddComponent<NetworkStreamInGame>(reqSrc.ValueRO.SourceConnection);
             // Get the NetworkId for the requesting client
             var networkId = networkIdFromEntity[reqSrc.ValueRO.SourceConnection];
@@ -125,6 +139,7 @@ public partial struct GoInGameServerSystem : ISystem
                 Rotation = quaternion.AxisAngle(math.up(), math.radians(0)),
                 Scale = 1f
             });
+            commandBuffer.SetComponent(player, new Username { Value = playerName });
 
             // Add the player to the linked entity group so it is destroyed automatically on disconnect
             commandBuffer.AppendToBuffer(reqSrc.ValueRO.SourceConnection, new LinkedEntityGroup{Value = player});

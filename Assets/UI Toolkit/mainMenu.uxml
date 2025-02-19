@@ -1,0 +1,7 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/mainmenu.uss?fileID=7433441132597879392&amp;guid=2b706d063845a8348825a919a098bb1b&amp;type=3#mainmenu" />
+    <Style src="project://database/Assets/menus.uss?fileID=7433441132597879392&amp;guid=8035de106a27c6c4789d9a548f52d698&amp;type=3#menus" />
+    <ui:Label tabindex="-1" text="SPACEBOIS" parse-escape-sequences="true" display-tooltip-when-elided="true" name="spacebois" view-data-key="spacebois" style="color: rgb(147, 96, 190);" />
+    <ui:TextField picking-mode="Ignore" label="Username" value="mcFarts69420" name="username" style="background-color: rgba(106, 42, 42, 0); -unity-background-scale-mode: scale-to-fit; color: rgb(125, 67, 149);" />
+    <ui:Button text="Connect" parse-escape-sequences="true" display-tooltip-when-elided="true" name="connect" view-data-key="connect" enable-rich-text="true" class="menuButton" />
+</ui:UXML>

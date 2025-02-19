@@ -142,11 +142,11 @@ public partial struct UpdateThrusters : IJobEntity
         float rollForceClamped = math.max(rollForce, 0);
         float pitchForceClamped = math.max(pitchForce, 0);
 
-        float rollForceForCalc = (craftMovementMode == MovementModes.Hover_Stopping || craftMovementMode == MovementModes.Hover)
+        float rollForceForCalc = ( craftMovementMode == MovementModes.bellyFirst)
                                   ? rollForceClamped
                                   : rollForce;
 
-        float pitchForceForCalc = (craftMovementMode == MovementModes.Hover_Stopping || craftMovementMode == MovementModes.Hover)
+        float pitchForceForCalc = (craftMovementMode == MovementModes.bellyFirst)
                                   ? pitchForceClamped
                                   : pitchForce;
 

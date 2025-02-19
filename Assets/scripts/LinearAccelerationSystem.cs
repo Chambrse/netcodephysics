@@ -67,9 +67,10 @@ public partial struct ApplyHoverForce : IJobEntity
         in LocalTransform localTransform,
         in MovementMode movementMode,
         in CraftInput craftInput,
-        in CraftTuning craftTuning)
+        in CraftTuning craftTuning,
+        in AeroForces aeroForces)
     {
-
+        float3 dragVector = aeroForces.linearAeroForces;
         // get rotation
         quaternion rotation = localTransform.Rotation;
 
@@ -82,13 +83,13 @@ public partial struct ApplyHoverForce : IJobEntity
 
         float totalVerticalAcceleration = 0;
         float totalRearAcceleration = 0;
-        if (movementMode.hoverMode == HoverMode_Player.VTOL)
+        if (movementMode.mode == MovementModes.bellyFirst)
         {
             totalVerticalAcceleration = linearAcceleration.linearAcceleration.y
                 + (50f * craftInput.Brakes);
 
             totalRearAcceleration += craftInput.Thrust * craftTuning.maxThrust;
-        } else if (movementMode.mode == MovementModes.Hover || movementMode.mode == MovementModes.Hover_Stopping)
+        } else if (movementMode.mode == MovementModes.bellyFirst)
         {
             totalVerticalAcceleration = linearAcceleration.linearAcceleration.y + 9.81f;
         } else if (movementMode.mode == MovementModes.Fly)
@@ -106,6 +107,6 @@ public partial struct ApplyHoverForce : IJobEntity
 
         linearAcceleration.totalLocalLinearAcceleration = localTotalAcceleration;
         // Apply total acceleration to physics velocity
-        physicsVelocity.Linear += totalAcceleration * DeltaTime; 
+        physicsVelocity.Linear += (totalAcceleration + dragVector) * DeltaTime; 
     }
 }
